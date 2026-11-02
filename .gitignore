@@ -1,0 +1,5 @@
+__pycache__/
+*.log
+app/t3k_config.json
+app/t3k_token.json
+.env

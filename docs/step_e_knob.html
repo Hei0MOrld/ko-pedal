@@ -1,0 +1,184 @@
+<title>ペダルのつまみ配線</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column workbench sheet — safety, Pico pin map, parts, table, checks */
+:root {
+  --bg: #f1f2f0; --paper: #ffffff; --fg: #1c2024; --muted: #59606a; --line: #d6d8d4;
+  --board: #1f7a3a; --board-text: #f2fff5; --pin: #c9a227; --accent: #0f7c6c;
+  --gnd: #262626; --enc: #1d4ed8; --push: #7c3aed; --btn: #c2410c; --off: #b8bcc2; --part: #3a3f45; --part-text: #ffffff;
+  --ok: #2e7d32; --warn: #a15c00; --bad: #c62828;
+  --f-head: "M PLUS 1p", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171a; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840;
+  --board: #17552a; --board-text: #e6fbe9; --pin: #d9b25a; --accent: #3cc2ab;
+  --gnd: #d4d4d4; --enc: #60a5fa; --push: #c4a5ff; --btn: #fb923c; --off: #4b5058; --part: #2b2f34; --part-text: #f1f1f1;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15171a; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840;
+  --board: #17552a; --board-text: #e6fbe9; --pin: #d9b25a; --accent: #3cc2ab;
+  --gnd: #d4d4d4; --enc: #60a5fa; --push: #c4a5ff; --btn: #fb923c; --off: #4b5058; --part: #2b2f34; --part-text: #f1f1f1;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-head); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; display: grid; gap: 24px; }
+h1 { font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+h2 { font-weight: 800; font-size: 1.2rem; margin: 0 0 10px; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+.note { font-size: .9rem; color: var(--muted); margin: 10px 0 0; }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 560px; width: 100%; height: auto; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+td.pin { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+.sw { display: inline-block; width: .8em; height: .8em; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.case { border-left: 4px solid var(--line); padding: 8px 12px; border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--paper) 92%, var(--fg)); margin-top: 10px; }
+.case.ok { border-color: var(--ok); } .case.bad { border-color: var(--bad); } .case.warn { border-color: var(--warn); }
+.case b { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .9rem; margin-top: 10px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<main>
+  <header>
+    <h1>ペダルのつまみ配線(手順 E-2)</h1>
+    <p class="lead">回して押せるつまみ(Tayda A-6331)と左右のボタン 2 個(A-5050)を Pico につなぎます。
+      Pico のプログラム(v7)はもう対応しているので、書き換えは要りません。抵抗も要りません(Pico の中で引き上げています)。</p>
+  </header>
+
+  <section>
+    <h2>はじめに</h2>
+    <div class="case ok"><b>Pico を USB から抜いた状態でつなぐ</b>Pico に電気が来ていなければ、ラズパイの電源は入ったままで大丈夫です。</div>
+    <div class="case warn"><b>画面の線は、まだラズパイに挿さない</b>画面の 8 本は画面の側だけにつけて、ラズパイ側の先は浮かせておく(5V の線はテープで留める)。ラズパイの組み直しが終わってから、電源を切って挿します。</div>
+  </section>
+
+  <section>
+    <h2>Pico のピン(上から見た図)</h2>
+    <div class="diagram" role="img" aria-label="Pico の左側のピン1〜20と、使う7本">
+      <svg id="pico" viewBox="0 0 600 260" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--enc)"></span>つまみ(回す)</span>
+      <span><span class="sw" style="background:var(--push)"></span>つまみ(押す)</span>
+      <span><span class="sw" style="background:var(--btn)"></span>左右ボタン</span>
+      <span><span class="sw" style="background:var(--gnd)"></span>GND</span>
+    </div>
+    <p class="note">USB 端子を左にして上から見たとき、<b>下の列</b>が左から 1〜20 番(GP0 側)。使うのは 13〜19 番の 7 本。
+      12 番(GP9)は今つながっているリレー、11 番(GP8)と 10 番(GP7)は白・赤の LED なので触らない。</p>
+  </section>
+
+  <section>
+    <h2>つまみとボタンの足</h2>
+    <div class="diagram" role="img" aria-label="つまみの5本の足と、ボタンの足のつなぎ先">
+      <svg id="parts" viewBox="0 0 600 230" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <p class="note">つまみは<b>3 本足の側が「回す」</b>(真ん中が共通 = GND)、<b>2 本足の側が「押す」</b>スイッチ。
+      回す向きが逆だったら、あとでプログラムで直せるので、A と B はどちら向きでも大丈夫。ボタンは 2 本の足のどちらが GND でも同じ。</p>
+  </section>
+
+  <section>
+    <h2>つなぐ場所</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>部品の足</th><th>Pico</th><th>送る信号</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="note">GND は 13 番と 18 番のどちらでも同じ。ブレッドボードの − の列にまとめてもいい。</p>
+  </section>
+
+  <section>
+    <h2>確かめる順番</h2>
+    <ol class="steps">
+      <li>配線が終わったら、Pico をラズパイの USB に挿し直す</li>
+      <li>ラズパイの組み直しが終わったら、Claude が Pico の信号を見ながら確認する</li>
+      <li>つまみを右に回す → CC102 の 65、左に回す → 63 が届く</li>
+      <li>つまみを押す → CC103、左ボタン → CC104、右ボタン → CC105 が届く</li>
+      <li>全部届いたら E-2 の配線は完了。画面に値を出すのは E-3(画面がついてから)</li>
+    </ol>
+    <div class="case warn"><b>回しても何も来ないとき</b>真ん中の足が GND についていない、または A・B が 14・15 番からずれている。</div>
+    <div class="case warn"><b>1 クリックで 2 つ以上動く・逆に動く</b>配線は合っています。プログラムの設定で直します。</div>
+  </section>
+</main>
+
+<script>
+(function () {
+  const ns = "http://www.w3.org/2000/svg";
+  const el = (svg, tag, attrs, text) => {
+    const e = document.createElementNS(ns, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e); return e;
+  };
+  // Pico の 1〜20 番(下の列)
+  const pico = [
+    [1, "GP0"], [2, "GP1"], [3, "GND"], [4, "GP2"], [5, "GP3"], [6, "GP4"], [7, "GP5"], [8, "GND"], [9, "GP6"], [10, "GP7"],
+    [11, "GP8"], [12, "GP9"], [13, "GND", "--gnd"], [14, "GP10", "--enc"], [15, "GP11", "--enc"], [16, "GP12", "--push"],
+    [17, "GP13", "--btn"], [18, "GND", "--gnd"], [19, "GP14", "--btn"], [20, "GP15"],
+  ];
+  const sv = document.getElementById("pico");
+  el(sv, "rect", { x: 40, y: 50, width: 540, height: 130, rx: 8, fill: "var(--board)" });
+  el(sv, "rect", { x: 14, y: 95, width: 40, height: 40, rx: 4, fill: "var(--off)" });
+  el(sv, "text", { x: 34, y: 152, "font-size": 11, fill: "var(--muted)", "text-anchor": "middle" }, "USB");
+  el(sv, "text", { x: 310, y: 112, "font-size": 15, "font-weight": 800, fill: "var(--board-text)", "text-anchor": "middle" }, "Pico 2(上から)");
+  pico.forEach(([n, name, c], i) => {
+    const x = 64 + i * 26.5, y = 165;
+    el(sv, "circle", { cx: x, cy: y, r: c ? 9 : 6, fill: c ? `var(${c})` : "var(--pin)", opacity: c ? 1 : .6 });
+    el(sv, "text", { x, y: y - 16, "font-size": c ? 12 : 10, "font-weight": 700, fill: "var(--board-text)", "text-anchor": "middle", "font-family": "var(--f-mono)", opacity: c ? 1 : .7 }, String(n));
+    el(sv, "text", { x, y: 208 + (i % 2) * 14, "font-size": 10, "font-weight": c ? 700 : 400, fill: c ? "var(--fg)" : "var(--muted)", "text-anchor": "middle", "font-family": "var(--f-mono)" }, name);
+  });
+  el(sv, "text", { x: 40, y: 34, "font-size": 12, fill: "var(--muted)" }, "上の列(21〜40 番)は使わない");
+
+  // 部品
+  const p = document.getElementById("parts");
+  const leg = (x, y, c, label, sub) => {
+    el(p, "line", { x1: x, y1: y, x2: x, y2: y + 40, stroke: `var(${c})`, "stroke-width": 5, "stroke-linecap": "round" });
+    el(p, "text", { x, y: y + 60, "font-size": 12, "font-weight": 700, fill: "var(--fg)", "text-anchor": "middle" }, label);
+    el(p, "text", { x, y: y + 76, "font-size": 11, fill: "var(--muted)", "text-anchor": "middle", "font-family": "var(--f-mono)" }, sub);
+  };
+  // つまみ: 上に2本(押す)、下に3本(回す)
+  el(p, "rect", { x: 70, y: 70, width: 150, height: 70, rx: 6, fill: "var(--part)" });
+  el(p, "circle", { cx: 145, cy: 105, r: 22, fill: "var(--off)" });
+  [[115, "GP12・16番", "--push"], [175, "GND", "--gnd"]].forEach(([x, s, c]) => {
+    el(p, "line", { x1: x, y1: 70, x2: x, y2: 30, stroke: `var(${c})`, "stroke-width": 5, "stroke-linecap": "round" });
+    el(p, "text", { x, y: 22, "font-size": 11, "font-weight": 700, fill: "var(--fg)", "text-anchor": "middle" }, s);
+  });
+  leg(95, 140, "--enc", "A", "GP10・14番");
+  leg(145, 140, "--gnd", "真ん中", "GND");
+  leg(195, 140, "--enc", "B", "GP11・15番");
+  el(p, "text", { x: 232, y: 108, "font-size": 13, "font-weight": 700, fill: "var(--fg)" }, "つまみ A-6331");
+  // ボタン 2 個
+  [[380, "左", "GP13・17番"], [510, "右", "GP14・19番"]].forEach(([x, n, s]) => {
+    el(p, "rect", { x: x - 32, y: 80, width: 64, height: 50, rx: 6, fill: "var(--part)" });
+    el(p, "text", { x, y: 111, "font-size": 13, "font-weight": 800, fill: "var(--part-text)", "text-anchor": "middle" }, n);
+    leg(x - 16, 130, "--btn", "", s);
+    leg(x + 18, 130, "--gnd", "", "GND");
+  });
+  el(p, "text", { x: 445, y: 58, "font-size": 13, "font-weight": 700, fill: "var(--fg)", "text-anchor": "middle" }, "ボタン A-5050 ×2");
+
+  // 表
+  const rows = [
+    ["つまみ 3 本足の端(A)", "14 番(GP10)", "回す(CC102)", "--enc"],
+    ["つまみ 3 本足の真ん中", "13 番(GND)", "共通", "--gnd"],
+    ["つまみ 3 本足の端(B)", "15 番(GP11)", "回す(CC102)", "--enc"],
+    ["つまみ 2 本足の片方", "16 番(GP12)", "押す(CC103)", "--push"],
+    ["つまみ 2 本足のもう片方", "GND", "", "--gnd"],
+    ["左ボタンの片方", "17 番(GP13)", "左(CC104)", "--btn"],
+    ["右ボタンの片方", "19 番(GP14)", "右(CC105)", "--btn"],
+    ["左右ボタンのもう片方", "18 番(GND)", "", "--gnd"],
+  ];
+  const tb = document.getElementById("rows");
+  rows.forEach(([a, b, c, k]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><span class="sw" style="background:var(${k})"></span>${a}</td><td class="pin">${b}</td><td>${c}</td>`;
+    tb.appendChild(tr);
+  });
+})();
+</script>

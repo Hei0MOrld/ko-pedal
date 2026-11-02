@@ -1,0 +1,236 @@
+<title>UR12 リアンプボックス</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=Archivo+Black&display=swap">
+<style>
+/* Layout: 一枚の製作シート。完成図 → 中の配線 → 部品 → 使い方 を縦に並べる */
+:root{
+  --bg:#eef0ec; --paper:#f8f9f6; --ink:#1d2321; --muted:#5d6763; --line:#c6ccc8;
+  --alu:#b9c0bd; --alu-hi:#dde2df; --alu-lo:#8e9793; --silk:#1d2321;
+  --accent:#c2410c; --wire:#1d2321; --gnd2:#2563a8; --gnd1:#7a4fa3;
+  --display:"Archivo Black","Zen Kaku Gothic New",system-ui,sans-serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#151918; --paper:#1c2120; --ink:#e4e8e6; --muted:#9aa4a0; --line:#343b39;
+  --alu:#6f7875; --alu-hi:#8e9894; --alu-lo:#4c5452; --silk:#101312;
+  --accent:#f0743a; --wire:#e4e8e6; --gnd2:#6aa7e8; --gnd1:#b991dd; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#151918; --paper:#1c2120; --ink:#e4e8e6; --muted:#9aa4a0; --line:#343b39;
+  --alu:#6f7875; --alu-hi:#8e9894; --alu-lo:#4c5452; --silk:#101312;
+  --accent:#f0743a; --wire:#e4e8e6; --gnd2:#6aa7e8; --gnd1:#b991dd; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.75}
+.wrap{max-width:880px;margin:0 auto;padding-inline:16px;padding-block:40px 64px;display:grid;gap:44px}
+header{display:grid;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{font-family:var(--display);font-size:clamp(28px,6vw,44px);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:.01em}
+h2{font-family:var(--body);font-weight:700;font-size:20px;margin:0 0 12px;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lede{color:var(--muted)}
+section{display:grid;gap:14px;min-width:0}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto;min-width:0}
+.sheet svg{display:block;width:100%;min-width:560px;height:auto}
+.views{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
+@media (max-width:640px){.views{grid-template-columns:1fr}}
+.views .sheet svg{min-width:0}
+.cap{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+svg text{font-family:var(--mono);fill:var(--ink)}
+.dim{stroke:var(--muted);stroke-width:1;fill:none}
+.dimt{fill:var(--muted);font-size:11px}
+.alu{fill:var(--alu);stroke:var(--alu-lo);stroke-width:2}
+.alu-hi{fill:var(--alu-hi)}
+.silk{fill:var(--silk);font-family:var(--display);letter-spacing:.06em}
+.silk-s{fill:var(--silk);font-family:var(--mono);font-size:10px;font-weight:600}
+.knob{fill:#2a2f2d;stroke:#111;stroke-width:2}
+.knob-mark{stroke:#f2f2f2;stroke-width:3;stroke-linecap:round}
+.nut{fill:var(--alu-hi);stroke:var(--alu-lo);stroke-width:1.5}
+.bat{fill:#d9dcdb;stroke:#6b7270;stroke-width:1.5}
+.rca{fill:#c9a227;stroke:#7a6214;stroke-width:1.5}
+.rca-in{fill:#b8231b}
+.hole{fill:#111}
+.w{stroke:var(--wire);stroke-width:2;fill:none}
+.wg2{stroke:var(--gnd2);stroke-width:2;fill:none}
+.wg1{stroke:var(--gnd1);stroke-width:2;fill:none}
+.part{fill:var(--paper);stroke:var(--wire);stroke-width:2}
+.dot{fill:var(--wire)}
+.dot2{fill:var(--gnd2)}
+.lbl{font-size:12px}
+.lbl-a{font-size:12px;fill:var(--accent);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;background:currentColor}
+.l-sig{color:var(--wire)} .l-g2{color:var(--gnd2)} .l-g1{color:var(--gnd1)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+tfoot td{font-weight:700;border-bottom:none}
+ol{margin:0;padding-left:1.4em;display:grid;gap:8px;max-width:65ch}
+.note{border-left:3px solid var(--accent);padding:4px 0 4px 14px;color:var(--ink);max-width:65ch}
+code{font-family:var(--mono);font-size:.92em}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">BASS PEDAL / NAM CAPTURE TOOL</div>
+  <h1>UR12 リアンプボックス</h1>
+  <p class="lede">UR12 の RCA 出力から流した取り込み用の音を、ベースから出る信号と同じくらいの強さに下げてペダルへ送る箱です。下の図は完成したときの姿です。</p>
+</header>
+
+<section>
+  <h2>完成図</h2>
+  <div class="views">
+    <div class="sheet">
+      <svg viewBox="0 0 360 400" role="img" aria-label="ケース上面の完成図。LEVEL つまみ、Z と GND LIFT のトグルスイッチ">
+        <rect class="alu" x="102" y="36" width="156" height="292" rx="10"/>
+        <rect class="alu-hi" x="110" y="44" width="10" height="276" rx="4" opacity=".6"/>
+        <g fill="var(--alu-lo)"><circle cx="116" cy="50" r="4"/><circle cx="244" cy="50" r="4"/><circle cx="116" cy="314" r="4"/><circle cx="244" cy="314" r="4"/></g>
+        <text class="silk" x="180" y="96" text-anchor="middle" font-size="22">RE·AMP</text>
+        <text class="silk-s" x="180" y="114" text-anchor="middle">LINE → INST</text>
+        <circle class="knob" cx="180" cy="180" r="30"/>
+        <line class="knob-mark" x1="180" y1="180" x2="196" y2="158"/>
+        <text class="silk-s" x="180" y="232" text-anchor="middle">LEVEL</text>
+        <g class="silk-s" font-size="9"><text x="138" y="214">MIN</text><text x="206" y="214">MAX</text></g>
+        <g transform="translate(140,272)">
+          <circle class="nut" r="11"/><rect class="bat" x="-3.5" y="-24" width="7" height="22" rx="3"/>
+          <text class="silk-s" y="-32" text-anchor="middle">Z</text>
+          <text class="silk-s" y="28" text-anchor="middle" font-size="9">DI / PU</text>
+        </g>
+        <g transform="translate(220,272)">
+          <circle class="nut" r="11"/><rect class="bat" x="-3.5" y="2" width="7" height="22" rx="3"/>
+          <text class="silk-s" y="-18" text-anchor="middle" font-size="9">GND</text>
+          <text class="silk-s" y="40" text-anchor="middle" font-size="9">LIFT / ON</text>
+        </g>
+        <rect class="rca" x="142" y="18" width="18" height="20" rx="2"/>
+        <rect class="nut" x="198" y="20" width="22" height="18" rx="2"/>
+        <text class="lbl" x="151" y="12" text-anchor="middle">IN</text>
+        <text class="lbl" x="209" y="12" text-anchor="middle">OUT</text>
+        <line class="dim" x1="102" y1="352" x2="258" y2="352"/><line class="dim" x1="102" y1="346" x2="102" y2="358"/><line class="dim" x1="258" y1="346" x2="258" y2="358"/>
+        <text class="dimt" x="180" y="372" text-anchor="middle">60 mm</text>
+        <line class="dim" x1="282" y1="36" x2="282" y2="328"/><line class="dim" x1="276" y1="36" x2="288" y2="36"/><line class="dim" x1="276" y1="328" x2="288" y2="328"/>
+        <text class="dimt" x="292" y="186">112 mm</text>
+        <g class="lbl-a">
+          <line x1="40" y1="180" x2="148" y2="180" stroke="var(--accent)" stroke-width="1"/>
+          <text x="10" y="172">音量</text>
+          <line x1="40" y1="270" x2="128" y2="270" stroke="var(--accent)" stroke-width="1"/>
+          <text x="10" y="262">ファズ用</text>
+        </g>
+      </svg>
+      <div class="cap">上面 / ケース 1590B サイズ（112×60×31mm）</div>
+    </div>
+    <div class="sheet">
+      <svg viewBox="0 0 300 200" role="img" aria-label="上の端面。左に赤い RCA 入力、右に標準ジャックの出力">
+        <rect class="alu" x="20" y="50" width="260" height="90" rx="8"/>
+        <circle class="nut" cx="95" cy="95" r="22"/>
+        <circle class="rca" cx="95" cy="95" r="14"/>
+        <circle class="rca-in" cx="95" cy="95" r="7"/>
+        <circle class="hole" cx="95" cy="95" r="2.5"/>
+        <circle class="nut" cx="205" cy="95" r="22"/>
+        <circle fill="var(--alu-lo)" cx="205" cy="95" r="14"/>
+        <circle class="hole" cx="205" cy="95" r="8"/>
+        <text class="silk-s" x="95" y="132" text-anchor="middle">LINE IN</text>
+        <text class="silk-s" x="205" y="132" text-anchor="middle">TO PEDAL</text>
+        <text class="lbl" x="95" y="36" text-anchor="middle">UR12 RCA L から</text>
+        <text class="lbl" x="205" y="36" text-anchor="middle">ペダル IN へ</text>
+        <line class="dim" x1="20" y1="165" x2="280" y2="165"/>
+        <text class="dimt" x="150" y="184" text-anchor="middle">60 mm（端面）</text>
+      </svg>
+      <div class="cap">上の端面 / 足で踏まないので、ジャックは上側にまとめる</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>中の配線</h2>
+  <div class="legend"><span class="l-sig">信号</span><span class="l-g2">出力側グラウンド（ケースもここ）</span><span class="l-g1">入力側グラウンド（UR12 側）</span></div>
+  <div class="sheet">
+    <svg viewBox="0 0 820 330" role="img" aria-label="回路図。RCA入力からトランス、10kAポット、Zスイッチ、出力ジャックへ。GNDリフトスイッチで入力側と出力側のグラウンドをつなぐ">
+      <circle class="part" cx="50" cy="90" r="16"/><circle class="dot" cx="50" cy="90" r="4"/>
+      <text class="lbl" x="50" y="56" text-anchor="middle">RCA IN</text>
+      <path class="w" d="M66 90 H150"/>
+      <path class="wg1" d="M50 106 V220 H150"/>
+      <path class="w" d="M150 90 V110"/>
+      <path class="w" d="M150 110 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20 a10 10 0 0 1 0 20"/>
+      <path class="wg1" d="M150 190 V220"/>
+      <line x1="172" y1="104" x2="172" y2="196" stroke="var(--wire)" stroke-width="2"/>
+      <line x1="178" y1="104" x2="178" y2="196" stroke="var(--wire)" stroke-width="2"/>
+      <path class="w" d="M200 110 a10 10 0 0 0 0 20 a10 10 0 0 0 0 20 a10 10 0 0 0 0 20 a10 10 0 0 0 0 20"/>
+      <path class="w" d="M200 110 V90 H330"/>
+      <path class="wg2" d="M200 190 V260"/>
+      <text class="lbl" x="175" y="230" text-anchor="middle">T1  1:1</text>
+      <text class="dimt" x="175" y="246" text-anchor="middle">600Ω:600Ω</text>
+      <rect class="part" x="320" y="90" width="20" height="100"/>
+      <path class="wg2" d="M330 190 V260"/>
+      <path class="w" d="M372 140 H350"/>
+      <path d="M350 140 l10 -6 v12 z" fill="var(--wire)"/>
+      <text class="lbl" x="352" y="208">VR1 10kA</text>
+      <text class="dimt" x="352" y="224">LEVEL</text>
+      <text class="dimt" x="312" y="86" text-anchor="end">3</text>
+      <text class="dimt" x="312" y="200" text-anchor="end">1</text>
+      <text class="dimt" x="380" y="132">2</text>
+      <path class="w" d="M372 140 H430"/>
+      <circle class="dot" cx="430" cy="140" r="4"/>
+      <path class="w" d="M430 140 L474 112"/>
+      <circle class="part" cx="480" cy="110" r="4"/>
+      <circle class="part" cx="480" cy="170" r="4"/>
+      <text class="lbl" x="440" y="196">SW1  Z</text>
+      <text class="dimt" x="490" y="100">DI（直結）</text>
+      <path class="w" d="M484 110 H640"/>
+      <path class="w" d="M484 170 H520"/>
+      <path class="w" d="M520 170 l6 -8 l10 16 l10 -16 l10 16 l10 -16 l10 16 l6 -8"/>
+      <path class="w" d="M582 170 H620 V110"/>
+      <circle class="dot" cx="620" cy="110" r="4"/>
+      <text class="lbl" x="551" y="200" text-anchor="middle">R1 10kΩ</text>
+      <text class="dimt" x="551" y="216" text-anchor="middle">PU（ピックアップ相当）</text>
+      <path class="w" d="M640 110 H700"/>
+      <rect class="part" x="700" y="92" width="44" height="36" rx="4"/>
+      <text class="lbl" x="722" y="80" text-anchor="middle">OUT（TS）</text>
+      <text class="dimt" x="722" y="114" text-anchor="middle">T</text>
+      <text class="dimt" x="722" y="146" text-anchor="middle">S</text>
+      <path class="wg2" d="M722 128 V260"/>
+      <path class="wg2" d="M200 260 H760"/>
+      <circle class="dot2" cx="330" cy="260" r="4"/><circle class="dot2" cx="722" cy="260" r="4"/>
+      <text class="lbl" x="764" y="264" style="fill:var(--gnd2)">ケース</text>
+      <path class="wg1" d="M150 220 H100 V290 H240"/>
+      <circle class="part" cx="244" cy="290" r="4"/>
+      <path class="wg2" d="M248 290 L282 276"/>
+      <circle class="part" cx="290" cy="290" r="4"/>
+      <path class="wg2" d="M290 286 V260"/>
+      <circle class="dot2" cx="290" cy="260" r="4"/>
+      <text class="lbl" x="250" y="318">SW2  GND LIFT（図は LIFT＝切）</text>
+    </svg>
+  </div>
+  <p class="note">トランスなしで作るなら、T1 を外して RCA の芯線をそのまま VR1 の 3 番につなぎ、RCA のグラウンドを出力側グラウンドにつなぎます。SW2 も要りません。ハムが出なければ、それで完成です。</p>
+</section>
+
+<section>
+  <h2>部品</h2>
+  <div class="tbl">
+  <table>
+    <thead><tr><th>記号</th><th>部品</th><th>メモ</th><th style="text-align:right">目安</th></tr></thead>
+    <tbody>
+      <tr><td><code>T1</code></td><td>1:1 オーディオトランス</td><td>600Ω:600Ω の小型品。ハムが出たときだけ要る</td><td class="num">¥300–1,500</td></tr>
+      <tr><td><code>VR1</code></td><td>ポット 10kΩ A カーブ</td><td>16mm 基板用でも可。つまみも1個</td><td class="num">¥150</td></tr>
+      <tr><td><code>R1</code></td><td>抵抗 10kΩ</td><td>1/4W 金属皮膜</td><td class="num">¥10</td></tr>
+      <tr><td><code>SW1</code> <code>SW2</code></td><td>小型トグルスイッチ ×2</td><td>SW1 は ON-ON、SW2 は ON-OFF</td><td class="num">¥200</td></tr>
+      <tr><td>—</td><td>RCA ジャック（パネル取付）</td><td>赤を選ぶと UR12 の L とそろう</td><td class="num">¥100</td></tr>
+      <tr><td>—</td><td>6.3mm モノラルジャック</td><td>ペダル製作の余りで十分</td><td class="num">¥150</td></tr>
+      <tr><td>—</td><td>アルミケース 1590B サイズ</td><td>穴あけ済み品なら楽</td><td class="num">¥600</td></tr>
+    </tbody>
+    <tfoot><tr><td></td><td>合計</td><td>手持ちの余り部品で減る</td><td class="num">¥1,500–2,700</td></tr></tfoot>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>使い方</h2>
+  <ol>
+    <li>UR12 の背面 RCA の L とボックスの IN を、RCA ケーブルでつなぐ。</li>
+    <li>ボックスの OUT を取り込みたいペダルの IN に、ペダルの OUT を UR12 正面の Hi-Z 入力（INST を ON）につなぐ。</li>
+    <li>LEVEL を半分くらいにして、Reaper から取り込み用の音源を流す。ペダルを通した音を、別のトラックに録音する。</li>
+    <li>UR12 の GAIN で、録音の一番大きいところを −8dB くらいにそろえる。</li>
+    <li>ハムが出たら GND LIFT を切り替える。ファズを取り込むときは Z を PU にする。</li>
+    <li>録った WAV（48kHz / 24bit / モノラル）を TONE3000 にアップして、学習させる。</li>
+  </ol>
+</section>
+</div>

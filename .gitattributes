@@ -1,0 +1,5 @@
+* text=auto
+pi/pedal-* text eol=lf
+*.sh text eol=lf
+*.service text eol=lf
+*.py text eol=lf

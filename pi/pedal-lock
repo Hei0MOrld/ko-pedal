@@ -1,0 +1,35 @@
+#!/bin/sh
+# SD カードのロック(読み取り専用化)の切り替え(2026-10-09、/usr/local/bin/pedal-lock に置く)
+#
+# ロック中は SD に一切書かず、書き込みは全部メモリが受け止める → 電源ブチ切りでも SD が壊れない。
+# そのかわり、ロック中に PiPedal で保存したプリセットなどは再起動で消える。
+# 設定を変えたいとき: pedal-lock off → 再起動後に PiPedal で保存 → pedal-lock on
+#
+#   sudo pedal-lock status   今の状態を見る
+#   sudo pedal-lock on       ロックして再起動
+#   sudo pedal-lock off      ロックを外して再起動
+#
+# 中身は raspi-config の overlayfs 設定(overlayroot パッケージ)。/boot/firmware はロックしない
+# (ふだんは書かないので壊れにくい + ロックを外すときに cmdline.txt を書き換える必要があるため)。
+set -e
+
+now() { [ "$(raspi-config nonint get_overlay_now)" = "0" ] && echo on || echo off; }
+next() { grep -q "overlayroot=tmpfs" /boot/firmware/cmdline.txt && echo on || echo off; }
+
+case "$1" in
+  status)
+    echo "今: $(now)  /  次の起動: $(next)"
+    ;;
+  on|off)
+    [ "$(id -u)" = "0" ] || { echo "sudo を付けてください"; exit 1; }
+    if [ "$1" = "on" ]; then raspi-config nonint do_overlayfs 0; else raspi-config nonint do_overlayfs 1; fi
+    echo "次の起動: $(next)。5 秒後に再起動します"
+    sync
+    sleep 5
+    reboot
+    ;;
+  *)
+    echo "使い方: sudo pedal-lock status|on|off"
+    exit 1
+    ;;
+esac

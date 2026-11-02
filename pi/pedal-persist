@@ -1,0 +1,25 @@
+#!/bin/sh
+# pedal-persist(2026-10-21): SD の保護(overlayroot)中に、PiPedal のプリセットだけを SD 本体へ書く。
+# pedal_ui.py がペダルからの保存のあとに sudo で呼ぶ。保護中の書き込みはメモリにしか残らないため。
+# SD 本体(/media/root-ro)を数秒だけ書き込みにして、変わったファイルだけ写し、すぐ読み取り専用に戻す。
+# 書く前の版は /var/pipedal/presets-bak/ に 1 つだけ残す(1 つ前に戻す用)。
+# 入れる場所: /usr/local/bin/pedal-persist
+set -e
+LOWER=/media/root-ro
+DIR=/var/pipedal/presets
+[ -d "$LOWER$DIR" ] || exit 0   # 保護 OFF なら PiPedal が書いたものがそのまま残る
+changed=""
+for f in "$DIR"/*; do
+  [ -f "$f" ] || continue
+  cmp -s "$f" "$LOWER$f" || changed="$changed $f"
+done
+[ -n "$changed" ] || { echo "変わったファイルなし"; exit 0; }
+mount -o remount,rw "$LOWER"
+trap 'sync; mount -o remount,ro "$LOWER"' EXIT
+mkdir -p "$LOWER/var/pipedal/presets-bak"
+for f in $changed; do
+  [ -f "$LOWER$f" ] && cp -p "$LOWER$f" "$LOWER/var/pipedal/presets-bak/"
+  cp -p "$f" "$LOWER$f.tmp"
+  mv "$LOWER$f.tmp" "$LOWER$f"
+done
+echo "SD に保存:$changed"

@@ -1,0 +1,261 @@
+<title>琥ペダル 完成図</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=Shippori+Mincho+B1:wght@800&display=swap">
+<style>
+/* Layout: 製作シート。本体の上面 → 背面のジャック → 増設箱 → つなぎ方 → 未決 の順に縦に読む */
+:root{
+  --bg:#ecebe6; --paper:#f7f6f2; --ink:#1f1d1a; --muted:#67625a; --line:#cfcac0;
+  --body-a:#3a2a1f; --body-b:#5a4130; --edge:#1c140e; --plate:#c9c3b6; --plate-lo:#8f887a;
+  --led-tone:#2fb5ff; --led-fx:#ffb020; --led-off:#4a4038; --screen:#0f1412; --screen-fg:#8df0c0;
+  --accent:#b4531f; --wire:#1f1d1a;
+  --display:"Shippori Mincho B1","Zen Kaku Gothic New",serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161412; --paper:#1e1b18; --ink:#ebe7df; --muted:#a39d92; --line:#38332d;
+  --plate:#8f887a; --plate-lo:#5f594f; --accent:#ec8a4f; --wire:#ebe7df; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161412; --paper:#1e1b18; --ink:#ebe7df; --muted:#a39d92; --line:#38332d;
+  --plate:#8f887a; --plate-lo:#5f594f; --accent:#ec8a4f; --wire:#ebe7df; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.75}
+.wrap{max-width:920px;margin:0 auto;padding-inline:16px;padding-block:40px 64px;display:grid;gap:48px}
+header{display:grid;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,6vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+h2{font-weight:700;font-size:20px;margin:0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lede{color:var(--muted)}
+section{display:grid;gap:14px;min-width:0}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto;min-width:0}
+.sheet svg{display:block;width:100%;min-width:600px;height:auto}
+.cap{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:8px}
+svg text{font-family:var(--mono);fill:var(--ink)}
+.case{fill:url(#wood);stroke:var(--edge);stroke-width:3}
+.silk{fill:#e9dcc6;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em}
+.brand{fill:#e9dcc6;font-family:var(--display);font-weight:800}
+.fsw{fill:#d4d6d4;stroke:#555;stroke-width:2}
+.fsw-in{fill:#b9bcba}
+.knob{fill:#1b1b1b;stroke:#000;stroke-width:2}
+.knob-mark{stroke:#eee;stroke-width:3;stroke-linecap:round}
+.scr{fill:var(--screen);stroke:#000;stroke-width:2}
+.scr-t{fill:var(--screen-fg);font-family:var(--mono);font-weight:600}
+.panel{fill:var(--plate);stroke:var(--plate-lo);stroke-width:2}
+.jack{fill:#2a2a2a;stroke:#000;stroke-width:1.5}
+.jack-nut{fill:#d9d9d6;stroke:#777;stroke-width:1.5}
+.xlr{fill:#222;stroke:#000;stroke-width:1.5}
+.pin{fill:#c9a227}
+.lbl{font-size:12px}
+.lbl-m{font-size:11px;fill:var(--muted)}
+.lbl-a{font-size:12px;fill:var(--accent);font-weight:600}
+.call{stroke:var(--accent);stroke-width:1;fill:none}
+.cable{stroke:var(--wire);stroke-width:3;fill:none;stroke-linecap:round}
+.cable-d{stroke:var(--muted);stroke-width:2;fill:none;stroke-dasharray:5 5}
+.dimline{stroke:var(--muted);stroke-width:1;fill:none}
+.box{fill:url(#wood);stroke:var(--edge);stroke-width:2.5}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:3px;border:1px solid var(--line);color:var(--muted);margin-right:6px;vertical-align:1px}
+.tag.go{border-color:var(--accent);color:var(--accent)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.spec{display:grid;gap:10px;margin:0}
+.spec div{display:grid;grid-template-columns:7.5em 1fr;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.spec dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+.spec dd{margin:0;min-width:0}
+ul{margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:65ch}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">BASS PEDAL / SPEC 2026-10-03 時点</div>
+  <h1>琥ペダル 完成図</h1>
+  <p class="lede">中にラズパイ 5 が入ったベース用のペダルです。本体はフットスイッチ5つ（割り当てできる3つ + TUNER + BYPASS）と音量つまみ1つ。ボタンが足りなければ、増設箱をケーブルでつないでいくつでも足せます。音作りはスマホのブラウザで、AI と話しながらできます。</p>
+</header>
+
+<section>
+  <h2>本体（上から見たところ）</h2>
+  <div class="sheet">
+    <svg viewBox="0 0 780 330" role="img" aria-label="本体の上面。幅 330mm、奥行き 120mm。奥に琥のロゴ、2.4 インチ画面、VOLUME つまみ。手前にフットスイッチが横一列に5つ：TUNER、1、2、3、BYPASS">
+      <defs>
+        <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#5a4130"/><stop offset="1" stop-color="#3a2a1f"/>
+        </linearGradient>
+        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+      </defs>
+      <rect class="case" x="50" y="30" width="660" height="240" rx="12"/>
+      <g fill="#1c140e" opacity=".55"><circle cx="66" cy="46" r="4"/><circle cx="694" cy="46" r="4"/><circle cx="66" cy="254" r="4"/><circle cx="694" cy="254" r="4"/></g>
+      <text class="brand" x="86" y="92" font-size="38">琥</text>
+      <text class="silk" x="86" y="114">KO BASS RIG</text>
+      <rect class="scr" x="331" y="48" width="98" height="74" rx="4"/>
+      <text class="scr-t" x="340" y="66" font-size="9">MEMORY 2</text>
+      <text class="scr-t" x="340" y="92" font-size="14">DRIVE</text>
+      <text class="scr-t" x="340" y="114" font-size="8" opacity=".7">SansAmp▸B7K</text>
+      <circle class="knob" cx="640" cy="86" r="26"/>
+      <line class="knob-mark" x1="640" y1="86" x2="657" y2="68"/>
+      <text class="silk" x="640" y="130" text-anchor="middle">VOLUME</text>
+      <g transform="translate(120,206)"><circle r="30" fill="none" stroke="var(--led-off)" stroke-width="5"/><circle class="fsw" r="21"/><circle class="fsw-in" r="13"/><text class="silk" y="52" text-anchor="middle">TUNER</text></g>
+      <g transform="translate(250,206)"><circle r="30" fill="none" stroke="var(--led-off)" stroke-width="5"/><circle class="fsw" r="21"/><circle class="fsw-in" r="13"/><text class="silk" y="52" text-anchor="middle">1</text></g>
+      <g transform="translate(380,206)"><circle r="30" fill="none" stroke="var(--led-tone)" stroke-width="7" filter="url(#glow)"/><circle r="30" fill="none" stroke="var(--led-tone)" stroke-width="4"/><circle class="fsw" r="21"/><circle class="fsw-in" r="13"/><text class="silk" y="52" text-anchor="middle">2</text></g>
+      <g transform="translate(510,206)"><circle r="30" fill="none" stroke="var(--led-tone)" stroke-width="7" filter="url(#glow)"/><circle r="30" fill="none" stroke="var(--led-tone)" stroke-width="4"/><circle class="fsw" r="21"/><circle class="fsw-in" r="13"/><text class="silk" y="52" text-anchor="middle">3</text></g>
+      <g transform="translate(640,206)"><circle r="30" fill="none" stroke="var(--led-off)" stroke-width="5"/><circle class="fsw" r="21"/><circle class="fsw-in" r="13"/><text class="silk" y="52" text-anchor="middle">BYPASS</text></g>
+      <line x1="185" y1="168" x2="185" y2="250" stroke="#e9dcc6" stroke-opacity=".25"/>
+      <line x1="575" y1="168" x2="575" y2="250" stroke="#e9dcc6" stroke-opacity=".25"/>
+      <line class="dimline" x1="50" y1="292" x2="710" y2="292"/>
+      <line class="dimline" x1="50" y1="286" x2="50" y2="298"/><line class="dimline" x1="710" y1="286" x2="710" y2="298"/>
+      <text class="lbl" x="380" y="316" text-anchor="middle">幅 330 mm（スイッチの間隔 65 mm）</text>
+      <line class="dimline" x1="730" y1="30" x2="730" y2="270"/>
+      <line class="dimline" x1="724" y1="30" x2="736" y2="30"/><line class="dimline" x1="724" y1="270" x2="736" y2="270"/>
+      <text class="lbl" x="738" y="146">奥行き</text>
+      <text class="lbl" x="738" y="162">120</text>
+      <text class="lbl" x="738" y="178">mm</text>
+    </svg>
+  </div>
+  <div class="sheet">
+    <svg viewBox="0 0 780 210" role="img" aria-label="横から見た図。手前が低く奥が高いくさび形。奥 65mm、手前 45mm、奥行き 120mm。中のラズパイは奥側、フットスイッチは手前側">
+      <path class="case" d="M50 170 H290 V80 L50 40 Z"/>
+      <rect x="60" y="88" width="112" height="76" rx="3" fill="#2f7a3e" stroke="#16391d"/>
+      <text x="116" y="122" text-anchor="middle" font-size="10" style="fill:#e9f5ea">Pi 5</text>
+      <text x="116" y="136" text-anchor="middle" font-size="10" style="fill:#e9f5ea">+ HAT</text>
+      <rect x="226" y="72" width="16" height="60" fill="#9aa0a0" stroke="#555"/>
+      <rect x="222" y="62" width="24" height="10" rx="2" fill="#d4d6d4" stroke="#555"/>
+      <text class="lbl-m" x="234" y="54" text-anchor="middle">スイッチ</text>
+      <line class="dimline" x1="22" y1="40" x2="22" y2="170"/>
+      <line class="dimline" x1="16" y1="40" x2="28" y2="40"/><line class="dimline" x1="16" y1="170" x2="28" y2="170"/>
+      <text class="lbl" x="2" y="30">65 mm</text>
+      <line class="dimline" x1="310" y1="80" x2="310" y2="170"/>
+      <line class="dimline" x1="304" y1="80" x2="316" y2="80"/><line class="dimline" x1="304" y1="170" x2="316" y2="170"/>
+      <text class="lbl" x="318" y="130">45 mm</text>
+      <text class="lbl-m" x="50" y="194">奥（ジャック側）</text>
+      <text class="lbl-m" x="290" y="194" text-anchor="end">手前（足側）</text>
+      <text class="lbl" x="420" y="60">高さ：奥 約 65 mm / 手前 約 45 mm</text>
+      <text class="lbl-m" x="420" y="86">・奥にラズパイと音の基板（重ねて 約 35〜40 mm）</text>
+      <text class="lbl-m" x="420" y="108">・手前はスイッチの裏（約 30 mm）だけなので低くできる</text>
+      <text class="lbl-m" x="420" y="130">・手前を下げると踏みやすく、画面も顔のほうを向く</text>
+      <text class="lbl-m" x="420" y="152">・平らな箱にするなら高さ 約 60 mm</text>
+    </svg>
+    <div class="cap">大きさは目安。LED の色の例：青 = ON のエフェクター（2・3）、消灯 = OFF（1）。TUNER 中は赤、BYPASS 中は白。両端の TUNER と BYPASS は役割が固定</div>
+  </div>
+  <div class="grid2">
+    <dl class="spec">
+      <div><dt>フットスイッチ</dt><dd>5つ。1 / 2 / 3 はスイッチ1つにエフェクター1台（何を割り当てるかはスマホで選ぶ）。短く押すと ON / OFF、長押しで覚えておいた組み合わせ（3つ）を呼び出す。TUNER は踏むと音が消えてチューナー。BYPASS はリレーで素通りにするので、ラズパイが固まっても効く</dd></div>
+      <div><dt>LED リング</dt><dd>役割で色が変わる。ライブでも足元で今の状態がわかる</dd></div>
+      <div><dt>画面</dt><dd>2.0〜2.4インチのカラー液晶。ON のエフェクターと、スイッチの並びどおりの名前を出す。足元から読める文字の大きさ</dd></div>
+    </dl>
+    <dl class="spec">
+      <div><dt>VOLUME</dt><dd>全体の音量。エフェクターごとの音量は中でそろえておく</dd></div>
+      <div><dt>見た目</dt><dd>「琥」のロゴ。レリック加工かオイル仕上げ</dd></div>
+      <div><dt>中身</dt><dd>Raspberry Pi 5（4GB）+ HiFiBerry DAC+ADC Pro + 自作 Hi-Z バッファ。ソフトは PiPedal。スイッチと LED は中の Pi Pico が受け持つ</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section>
+  <h2>背面（ジャックの並び）</h2>
+  <div class="sheet">
+    <svg viewBox="0 0 760 210" role="img" aria-label="背面パネル。左から ロック付き DC 12V、USB 増設、EXP、XLR DI、GND リフト、DI の PRE/POST、OUT、IN">
+      <rect class="panel" x="40" y="40" width="680" height="110" rx="8"/>
+      <g transform="translate(92,95)"><circle class="jack-nut" r="17"/><circle class="jack" r="10"/><circle class="pin" r="2.5"/><circle r="21" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/></g>
+      <text class="lbl" x="92" y="176" text-anchor="middle">DC 12V</text>
+      <text class="lbl-m" x="92" y="192" text-anchor="middle">ロック付き</text>
+      <g transform="translate(176,95)"><rect x="-22" y="-12" width="44" height="24" rx="5" fill="#2a2a2a" stroke="#000"/><rect x="-14" y="-4" width="28" height="8" rx="2" fill="#888"/></g>
+      <text class="lbl" x="176" y="176" text-anchor="middle">増設箱</text>
+      <text class="lbl-m" x="176" y="192" text-anchor="middle">USB</text>
+      <g transform="translate(262,95)"><circle class="jack-nut" r="18"/><circle class="jack" r="9"/></g>
+      <text class="lbl" x="262" y="176" text-anchor="middle">EXP</text>
+      <text class="lbl-m" x="262" y="192" text-anchor="middle">ワウ・音量</text>
+      <g transform="translate(366,95)"><circle class="xlr" r="26"/><circle r="20" fill="#3a3a3a"/>
+        <circle class="pin" cx="-8" cy="-5" r="3"/><circle class="pin" cx="8" cy="-5" r="3"/><circle class="pin" cx="0" cy="9" r="3"/></g>
+      <text class="lbl" x="366" y="176" text-anchor="middle">DI OUT</text>
+      <text class="lbl-m" x="366" y="192" text-anchor="middle">XLR / PA へ</text>
+      <g transform="translate(440,95)"><circle class="jack-nut" r="9"/><rect x="-3" y="-24" width="6" height="20" rx="3" fill="#ddd" stroke="#666"/></g>
+      <text class="lbl" x="440" y="176" text-anchor="middle">GND</text>
+      <text class="lbl-m" x="440" y="192" text-anchor="middle">LIFT</text>
+      <g transform="translate(506,95)"><circle class="jack-nut" r="9"/><rect x="-3" y="4" width="6" height="20" rx="3" fill="#ddd" stroke="#666"/></g>
+      <text class="lbl" x="506" y="176" text-anchor="middle">DI</text>
+      <text class="lbl-m" x="506" y="192" text-anchor="middle">PRE/POST</text>
+      <g transform="translate(588,95)"><circle class="jack-nut" r="18"/><circle class="jack" r="9"/></g>
+      <text class="lbl" x="588" y="176" text-anchor="middle">OUT</text>
+      <text class="lbl-m" x="588" y="192" text-anchor="middle">アンプへ</text>
+      <g transform="translate(666,95)"><circle class="jack-nut" r="18"/><circle class="jack" r="9"/></g>
+      <text class="lbl" x="666" y="176" text-anchor="middle">IN</text>
+      <text class="lbl-m" x="666" y="192" text-anchor="middle">ベースから</text>
+      <text class="lbl-m" x="40" y="26">エフェクターの流儀どおり、右から入って左へ出る</text>
+    </svg>
+  </div>
+  <ul>
+    <li>電源を入れてから起動するまでの間や、故障したときは、リレーで IN と OUT を直結して音を素通りさせる。起動は15秒以内が目標</li>
+    <li>DI OUT は PA 卓に直接送るため。ハムが出たら GND LIFT を切り替える</li>
+    <li>DI の PRE / POST で、PA に送る音を選ぶ。PRE = エフェクト前のきれいな音、POST = 作った音。アンプを持って行かないときは POST</li>
+    <li>DC ジャックはロック付きにして、本番中に抜けないようにする</li>
+    <li>EXP にエクスプレッションペダルをつなぐと、踏み込み具合でワウ・音量・オクターバーの混ぜる量などをなめらかに動かせる。何を動かすかはスマホで割り当てる。最大2台</li>
+  </ul>
+</section>
+
+<section>
+  <h2>増設箱</h2>
+  <div class="sheet">
+    <svg viewBox="0 0 770 300" role="img" aria-label="本体の横に増設箱が2つ、USB ケーブルで数珠つなぎ。それぞれにフットスイッチ3つと ID">
+      <rect class="case" x="14" y="100" width="300" height="110" rx="8"/>
+      <text class="brand" x="28" y="130" font-size="18">琥</text>
+      <rect class="scr" x="142" y="110" width="44" height="34" rx="3"/>
+      <text class="scr-t" x="146" y="131" font-size="7">DRIVE</text>
+      <circle class="knob" cx="286" cy="126" r="12"/>
+      <g fill="#d4d6d4" stroke="#555" stroke-width="1.5"><circle cx="44" cy="180" r="10"/><circle cx="104" cy="180" r="10"/><circle cx="164" cy="180" r="10"/><circle cx="224" cy="180" r="10"/><circle cx="284" cy="180" r="10"/></g>
+      <g fill="none" stroke-width="3"><circle cx="44" cy="180" r="14" stroke="var(--led-off)"/><circle cx="104" cy="180" r="14" stroke="var(--led-off)"/><circle cx="164" cy="180" r="14" stroke="var(--led-tone)"/><circle cx="224" cy="180" r="14" stroke="var(--led-fx)"/><circle cx="284" cy="180" r="14" stroke="var(--led-off)"/></g>
+      <text class="lbl" x="164" y="236" text-anchor="middle">本体</text>
+      <path class="cable" d="M314 130 C322 130 322 140 330 140"/>
+      <rect class="box" x="330" y="96" width="180" height="110" rx="8"/>
+      <text class="silk" x="344" y="120">ID 01</text>
+      <g fill="#d4d6d4" stroke="#555" stroke-width="1.5"><circle cx="370" cy="164" r="13"/><circle cx="420" cy="164" r="13"/><circle cx="470" cy="164" r="13"/></g>
+      <g fill="none" stroke-width="3"><circle cx="370" cy="164" r="18" stroke="var(--led-off)"/><circle cx="420" cy="164" r="18" stroke="var(--led-fx)"/><circle cx="470" cy="164" r="18" stroke="var(--led-off)"/></g>
+      <text class="lbl" x="420" y="232" text-anchor="middle">増設箱</text>
+      <path class="cable" d="M510 150 C540 150 540 140 570 140"/>
+      <rect class="box" x="570" y="96" width="180" height="110" rx="8"/>
+      <text class="silk" x="584" y="120">ID 02</text>
+      <g fill="#d4d6d4" stroke="#555" stroke-width="1.5"><circle cx="610" cy="164" r="13"/><circle cx="660" cy="164" r="13"/><circle cx="710" cy="164" r="13"/></g>
+      <g fill="none" stroke-width="3" stroke="var(--led-off)"><circle cx="610" cy="164" r="18"/><circle cx="660" cy="164" r="18"/><circle cx="710" cy="164" r="18"/></g>
+      <text class="lbl" x="660" y="232" text-anchor="middle">増設箱</text>
+      <text class="lbl-m" x="385" y="40" text-anchor="middle">USB ケーブルで数珠つなぎ（第2段階、最大5段）。増設箱は 約 200 × 110 mm</text>
+      <path class="cable-d" d="M750 150 H768"/>
+      <text class="lbl-m" x="385" y="276" text-anchor="middle">中身：Raspberry Pi Pico（RP2040）+ USB-MIDI。1台あたり数千円</text>
+    </svg>
+  </div>
+  <ul>
+    <li>箱ごとに ID をマイコンに書き込んである。並べ替えても、ボタンの割り当てはずれない</li>
+    <li>本体が自動で見つけて、画面にも出す。スイッチ1つにエフェクター1台。箱を足すほどエフェクターが増える（何を割り当てるかはスマホで選ぶ）</li>
+    <li>ステージ用に頑丈にするなら、ケーブルを etherCON（頑丈な LAN）、通信を CAN にする案もある</li>
+  </ul>
+</section>
+
+<section>
+  <h2>つなぎ方</h2>
+  <div class="sheet">
+    <svg viewBox="0 0 760 230" role="img" aria-label="ベースからペダル、ペダルからアンプとPA卓へ有線。スマホは Wi-Fi で編集だけ">
+      <rect x="20" y="70" width="110" height="56" rx="8" fill="var(--paper)" stroke="var(--wire)" stroke-width="2"/>
+      <text class="lbl" x="75" y="103" text-anchor="middle">ベース</text>
+      <path class="cable" d="M130 98 H250"/>
+      <rect class="case" x="250" y="62" width="200" height="72" rx="10"/>
+      <text class="brand" x="350" y="106" font-size="22" text-anchor="middle">琥</text>
+      <path class="cable" d="M450 84 H600"/>
+      <path class="cable" d="M450 116 C520 116 520 160 600 160"/>
+      <rect x="600" y="62" width="130" height="44" rx="8" fill="var(--paper)" stroke="var(--wire)" stroke-width="2"/>
+      <text class="lbl" x="665" y="89" text-anchor="middle">アンプ</text>
+      <rect x="600" y="140" width="130" height="44" rx="8" fill="var(--paper)" stroke="var(--wire)" stroke-width="2"/>
+      <text class="lbl" x="665" y="167" text-anchor="middle">PA 卓（DI）</text>
+      <rect x="320" y="172" width="60" height="44" rx="8" fill="var(--paper)" stroke="var(--muted)" stroke-width="2"/>
+      <text class="lbl" x="350" y="199" text-anchor="middle">スマホ</text>
+      <path class="cable-d" d="M350 172 V134"/>
+      <text class="lbl-m" x="362" y="158">Wi-Fi（編集だけ）</text>
+      <text class="lbl-m" x="190" y="88" text-anchor="middle">シールド</text>
+      <text class="lbl-m" x="380" y="40" text-anchor="middle">音は全部有線。スマホがなくても鳴る</text>
+    </svg>
+  </div>
+</section>
+
+<section>
+  <h2>まだ決めていないこと</h2>
+  <ul>
+    <li><span class="tag">未決</span>増設箱のケーブル：USB か etherCON + CAN か</li>
+    <li><span class="tag">未決</span>ケースの大きさ、12V → 5V の電源回路、熱とノイズの対策</li>
+    <li><span class="tag go">次</span>AUX IN（スマホの曲を流す）+ ヘッドホン端子、microSD を外から抜ける穴、USB で PC に録音（作るのが難しい）</li>
+  </ul>
+</section>
+</div>

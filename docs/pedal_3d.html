@@ -1,0 +1,353 @@
+<title>琥ペダル 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: a workbench viewer — the 3D box fills the stage, a slim control strip under it, then the numbers and open questions. Same family as the step pages. */
+:root {
+  --bg: #eef0ec; --paper: #ffffff; --fg: #1d2126; --muted: #5a616b; --line: #d4d8d1; --accent: #0f7c6c;
+  --stage: #dfe3dc; --shell: #6b7f8f; --dig: #2f6fb0; --ana: #b8611c; --ctl: #7c3aed; --usb: #4b5b70; --pwr: #c62828; --warn: #a15c00;
+  --f-head: "M PLUS 1p", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15181b; --paper: #1e2226; --fg: #e8e7e2; --muted: #a2a8b0; --line: #343a41; --accent: #3cc2ab;
+  --stage: #0f1215; --shell: #9fb3c4; --dig: #6fa8e8; --ana: #f0a060; --ctl: #b9a4ff; --usb: #a9b8cc; --pwr: #ff7a72; --warn: #f0a74a;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15181b; --paper: #1e2226; --fg: #e8e7e2; --muted: #a2a8b0; --line: #343a41; --accent: #3cc2ab;
+  --stage: #0f1215; --shell: #9fb3c4; --dig: #6fa8e8; --ana: #f0a060; --ctl: #b9a4ff; --usb: #a9b8cc; --pwr: #ff7a72; --warn: #f0a74a;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-head); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 1040px; margin: 0 auto; padding-block: 24px 56px; display: grid; gap: 18px; }
+h1 { font-weight: 800; font-size: clamp(1.5rem, 4vw, 2rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+h2 { font-weight: 800; font-size: 1.1rem; margin: 0 0 8px; }
+.lead { color: var(--muted); margin: 4px 0 0; max-width: 64ch; }
+.stage { position: relative; height: min(62vh, 560px); min-height: 340px; border-radius: 12px; overflow: hidden;
+  background: var(--stage); border: 1px solid var(--line); touch-action: none; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.tag { position: absolute; left: 0; top: 0; transform: translate(-50%, -120%); pointer-events: none; white-space: nowrap;
+  font-size: 12px; font-weight: 700; padding: 1px 7px; border-radius: 4px; background: var(--paper); color: var(--fg);
+  border: 1px solid var(--line); opacity: .92; }
+.tag.dig { border-color: var(--dig); } .tag.ana { border-color: var(--ana); } .tag.ctl { border-color: var(--ctl); }
+.hint { position: absolute; right: 10px; bottom: 8px; font-size: 12px; color: var(--muted); pointer-events: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.controls label { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: .95rem; }
+.controls input[type=range] { width: 160px; accent-color: var(--accent); }
+.views { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+button { font: inherit; font-size: .9rem; font-weight: 700; padding: 5px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--paper); color: var(--fg); }
+button:hover { border-color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); color: var(--paper); border-color: var(--accent); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; font-variant-numeric: tabular-nums; }
+td { padding: 5px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.n { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 720px; width: 100%; height: auto; }
+.diagram text { font-family: var(--f-head); font-size: 13px; fill: var(--fg); }
+.diagram .s { font-size: 11px; fill: var(--muted); }
+.diagram .m { font-family: var(--f-mono); font-size: 11px; font-weight: 700; fill: var(--fg); }
+.diagram .blk { fill: var(--paper); stroke-width: 2.5; }
+.diagram .ln { fill: none; stroke-width: 3; stroke-linecap: round; }
+.k-pwr { stroke: var(--pwr); } .k-usb { stroke: var(--usb); } .k-ana { stroke: var(--ana); } .k-ctl { stroke: var(--ctl); } .k-dig { stroke: var(--dig); }
+.full { grid-column: 1 / -1; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: .86rem; margin-top: 8px; }
+.legend i { display: inline-block; width: 20px; height: 4px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.tablewrap { overflow-x: auto; }
+th { text-align: left; font-size: .78rem; color: var(--muted); padding: 5px 6px; border-bottom: 1px solid var(--line); letter-spacing: .03em; }
+.q { color: var(--warn); font-weight: 700; }
+</style>
+
+<main>
+  <header>
+    <h1>琥ペダル 3D(案 3:ラズパイは引き出し)</h1>
+    <p class="lead">幅 330 × 奥行き 120mm、奥 65 / 手前 45mm のくさび形。数字は 10/14 の内部配置の案と 11/1 の決定(電源は USB-C だけ)から。リレーは Pico 基板の上。UR12 の大きさはまだ推定です。</p>
+  </header>
+
+  <div class="stage" id="stage"><div class="hint">ドラッグで回す・ピンチ/ホイールで寄る</div></div>
+
+  <div class="controls">
+    <label for="drawer">引き出し <input type="range" id="drawer" min="0" max="100" value="0"></label>
+    <label for="shell">箱の見え方 <input type="range" id="shell" min="0" max="100" value="18"></label>
+    <button id="tags" aria-pressed="true">名前</button>
+    <button id="wires" aria-pressed="true">Pico の線</button>
+    <span class="views">
+      <button data-view="iso">斜め</button><button data-view="top">上</button>
+      <button data-view="back">後ろ</button><button data-view="side">横</button>
+    </span>
+  </div>
+
+  <div class="grid">
+    <section>
+      <h2>中に入る物</h2>
+      <table>
+        <tr><td><span class="sw" style="background:var(--dig)"></span>ラズパイ 5 + クーラー</td><td class="n">56×85×25</td></tr>
+        <tr><td><span class="sw" style="background:var(--dig)"></span>引き出しの板</td><td class="n">110×100</td></tr>
+        <tr><td><span class="sw" style="background:var(--ana)"></span>UR12 の基板(2 枚重ね・推定)</td><td class="n">145×60</td></tr>
+                <tr><td><span class="sw" style="background:var(--ctl)"></span>Pico 基板(リレーも載る・床)</td><td class="n">80×40</td></tr>
+        <tr><td>天板の画面 3.5"</td><td class="n">98×64</td></tr>
+        <tr><td>フットスイッチ 5 個(間隔)</td><td class="n">65</td></tr>
+      </table>
+    </section>
+    <section>
+      <h2>まだ決まっていないこと</h2>
+      <ul>
+        <li>UR12 の基板の実寸と、HI-Z・LINE OUT の端子の位置(定規を当てた写真で読み取ります)</li>
+        <li>画面の線(8 本)を、引き出しを開けても切れないようにする方法:コネクターで外す か 10cm の余り</li>
+        <li>引き出しの留め方:ネジ 1〜2 本 か 磁石</li>
+        <li>箱の材料(木・アルミ)。金属ならジャックの GND は箱と同じになる</li>
+      </ul>
+      <p class="note" style="margin-top:8px">背面:左が引き出しの前板(USB-C・HDMI・空気の穴)、右が IN / OUT / XLR / GND LIFT。足元の面には何も付けない。</p>
+    </section>
+  </div>
+
+  <section class="full">
+    <h2>全体のつながり</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 900 520" role="img" aria-label="電源・ラズパイ・UR12・Pico 基板(リレー)・ジャックのつながり">
+        <path class="ln k-pwr" d="M150 95 H230" /><text x="152" y="86" class="m">USB-C 5.1V 5A</text>
+        <path class="ln k-dig" d="M330 60 V32 H520" /><text x="340" y="24" class="m">GPIO 8本 (SPI)</text>
+        <path class="ln k-usb" d="M430 110 H520" /><text x="436" y="102" class="m">USB 2.0</text>
+        <path class="ln k-usb" d="M330 150 V200 H560 V250" /><text x="380" y="192" class="m">USB 2.0 → micro-B (MIDI・5V)</text>
+        <path class="ln k-ana" d="M850 290 H780" /><text x="790" y="282" class="m">6.3mm TS</text>
+        <path class="ln k-ana" d="M850 380 H780" /><text x="790" y="402" class="m">6.3mm TS</text>
+        <path class="ln k-ana" d="M760 250 V150" /><text x="768" y="214" class="m">HI-Z へ 6.3mm TS</text>
+        <path class="ln k-ana" d="M660 150 V250" /><text x="560" y="230" class="m">LINE OUT L (RCA)</text>
+        <path class="ln k-ana" d="M720 70 V50 H850" /><text x="740" y="42" class="m">LINE OUT R (RCA) → DI</text>
+        <path class="ln k-ctl" d="M600 410 V440" /><path class="ln k-ctl" d="M600 440 H90 V460" /><path class="ln k-ctl" d="M600 440 H650 V460" />
+        <path class="ln k-ctl" d="M190 440 V460" /><path class="ln k-ctl" d="M270 440 V460" /><path class="ln k-ctl" d="M370 440 V460" /><path class="ln k-ctl" d="M520 440 V460" />
+        <text x="606" y="432" class="m">GP2〜GP16</text>
+
+        <rect x="20" y="60" width="130" height="70" rx="8" class="blk k-pwr" /><text x="32" y="88">電源アダプター</text><text x="32" y="108" class="s">ラズパイ公式 27W</text>
+        <rect x="230" y="60" width="200" height="90" rx="8" class="blk k-dig" /><text x="242" y="86">ラズパイ 5(引き出し)</text><text x="242" y="106" class="s">PiPedal・Wi-Fi でスマホ</text><text x="242" y="124" class="s">USB-C・HDMI は背面へ</text>
+        <rect x="520" y="10" width="170" height="44" rx="8" class="blk k-dig" /><text x="532" y="38">画面 3.5"(天板)</text>
+        <rect x="520" y="70" width="280" height="80" rx="8" class="blk k-ana" /><text x="532" y="96">UR12 の基板</text><text x="532" y="116" class="s">電源はラズパイの USB から</text><text x="532" y="134" class="s">つまみは中で固定(下の表)</text>
+        <rect x="520" y="250" width="260" height="160" rx="8" class="blk k-ctl" /><text x="532" y="276">Pico 基板</text>
+        <text x="532" y="296" class="s">Pico 2:スイッチ・LED・つまみ → MIDI</text>
+        <rect x="660" y="310" width="110" height="88" rx="6" class="blk k-ana" /><text x="670" y="334">リレー TQ2</text><text x="670" y="354" class="s">+ 2SC1815</text><text x="670" y="372" class="s">GP9 で動く</text><text x="670" y="390" class="s">電気なし=素通り</text>
+        <text x="532" y="380" class="s">入口の GND は島</text>
+        <rect x="850" y="270" width="40" height="40" rx="6" class="blk k-ana" /><text x="858" y="295" class="m">IN</text>
+        <rect x="850" y="360" width="40" height="40" rx="6" class="blk k-ana" /><text x="854" y="385" class="m">OUT</text>
+        <rect x="850" y="30" width="40" height="40" rx="6" class="blk k-ana" /><text x="854" y="55" class="m">XLR</text>
+        <rect x="50" y="460" width="80" height="50" rx="8" class="blk k-ctl" /><text x="58" y="482">TUNER</text><text x="58" y="500" class="s">3PDT+LED</text>
+        <rect x="160" y="460" width="60" height="50" rx="8" class="blk k-ctl" /><text x="174" y="482">1</text><text x="168" y="500" class="s">リング</text>
+        <rect x="240" y="460" width="60" height="50" rx="8" class="blk k-ctl" /><text x="254" y="482">2</text><text x="248" y="500" class="s">リング</text>
+        <rect x="330" y="460" width="90" height="50" rx="8" class="blk k-ctl" /><text x="340" y="482">つまみ</text><text x="340" y="500" class="s">+ボタン 2</text>
+        <rect x="490" y="460" width="60" height="50" rx="8" class="blk k-ctl" /><text x="504" y="482">3</text><text x="498" y="500" class="s">リング</text>
+        <rect x="610" y="460" width="80" height="50" rx="8" class="blk k-ctl" /><text x="618" y="482">BYPASS</text><text x="618" y="500" class="s">3PDT+LED</text>
+      </svg>
+    </div>
+    <div class="legend"><span><i style="background:var(--pwr)"></i>電源</span><span><i style="background:var(--usb)"></i>USB</span>
+      <span><i style="background:var(--dig)"></i>画面の線</span><span><i style="background:var(--ana)"></i>音</span><span><i style="background:var(--ctl)"></i>Pico の線</span></div>
+  </section>
+
+  <section class="full">
+    <h2>線ごとの規格</h2>
+    <div class="tablewrap"><table>
+      <tr><th>から</th><th>へ</th><th>端子・規格</th><th>線</th><th>メモ</th></tr>
+      <tr><td>電源アダプター</td><td>ラズパイ USB-C</td><td class="n">USB-C / 5.1V 5A</td><td>公式 27W の線</td><td>引き出しの前板の穴に直接挿す。延長しないので、5A 対応の延長線は要らない</td></tr>
+      <tr><td>ラズパイ USB-A(黒 = 2.0)</td><td>UR12</td><td class="n">USB 2.0</td><td>15〜30cm</td><td>UR12 の POWER SOURCE は USB 側。<span class="q">UR12 側の差し込み口の形は、取り出した基板で確かめる</span></td></tr>
+      <tr><td>ラズパイ USB-A(黒 = 2.0)</td><td>Pico</td><td class="n">USB 2.0 A → micro-B</td><td>手持ちの短い線</td><td>MIDI と 5V。青い 3.0 の口は Wi-Fi に雑音を出すことがあるので使わない</td></tr>
+      <tr><td>ラズパイ GPIO</td><td>画面</td><td class="n">2.54mm ピッチ 8 本 (SPI0)</td><td>約 20cm</td><td>VCC 2・GND 6・CS 24・RESET 22・D/C 18・SDI 19・SCK 23・LED 17。引き出しを抜くときに外せるようにコネクターで</td></tr>
+      <tr><td>Pico GP2〜GP6</td><td>スイッチ 5 個</td><td class="n">はんだ付け</td><td>20〜30cm、2 本ねじる</td><td>もう片方は GND</td></tr>
+      <tr><td>Pico GP7 / GP8</td><td>TUNER / BYPASS の LED</td><td class="n">抵抗 → LED</td><td>30cm</td><td>抵抗は Pico 基板の側</td></tr>
+      <tr><td>Pico GP16・5V・GND</td><td>LED リング 1 → 2 → 3</td><td class="n">リング付属のコネクター</td><td>20cm</td><td>330Ω・1000µF 16V</td></tr>
+      <tr><td>Pico GP10〜GP14</td><td>つまみ・ボタン 2 個</td><td class="n">はんだ付け</td><td>20cm</td><td>A-6331 と A-5050</td></tr>
+      <tr><td>Pico GP9</td><td>リレー(同じ基板の上)</td><td class="n">2SC1815 → TQ2 のコイル</td><td>基板の上</td><td>リレーの線は入口の島から離して通す</td></tr>
+      <tr><td>IN ジャック</td><td>リレー</td><td class="n">6.3mm モノラル (TS)</td><td>シールド線</td><td>網線は入口の島の GND だけ</td></tr>
+      <tr><td>リレー</td><td>UR12 HI-Z</td><td class="n">6.3mm TS プラグ</td><td>今の短いパッチケーブル</td><td>UR12 にははんだ付けしない(挿すだけ)</td></tr>
+      <tr><td>UR12 LINE OUT L</td><td>リレー → OUT ジャック</td><td class="n">RCA → 6.3mm TS</td><td>シールド線</td><td>エフェクトの音</td></tr>
+      <tr><td>UR12 LINE OUT R</td><td>DI → XLR</td><td class="n">RCA → XLR オス (2 番 = ホット)</td><td>シールド線</td><td>大学のミキサーで確かめてから。1 番は GND LIFT のトグル</td></tr>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>ラズパイの向き(2 つの面の問題)</h2>
+    <p>ラズパイ 5 は、<b>USB-C・HDMI が長い辺</b>、<b>USB-A・LAN が短い辺</b>にあって、2 つの面に分かれています。</p>
+    <ul>
+      <li><b>長い辺を背面(引き出しの前板)に向ける</b>:電源の USB-C と HDMI がそのまま外から挿せる。延長線が要らない</li>
+      <li>USB-A は箱の中(右の UR12・Pico の方)を向く。中の 2 本だけなので、余りを 10cm くらい持たせれば引き出しを半分開けられる</li>
+      <li>GPIO は手前の辺になって、天板の画面に近い</li>
+      <li>ラズパイとして使うとき:前板から HDMI と電源を挿すだけ。全部抜くときは USB 2 本と画面の線を外す</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>リレーは Pico 基板の上</h2>
+    <p>リレー(TQ2)とそれを動かすトランジスタは、Pico と同じユニバーサル基板に載っています。そこで 3D では Pico 基板を、ジャックに近い右の床に置きました。</p>
+    <ul>
+      <li>電気が来ていない・BYPASS のとき:IN → OUT を直接つなぐ(ラズパイが止まっても音が出る)</li>
+      <li>エフェクトのとき:IN → UR12 の HI-Z、UR12 の LINE OUT → OUT</li>
+      <li>入口の GND(IN のスリーブと HI-Z の網線)は島にして、Pico の GND とつながない</li>
+    </ul>
+    <p class="note">右に寄せたので、TUNER の線は約 30cm になります(左端まで行くため)。</p>
+  </section>
+
+  <section class="full">
+    <h2>UR12 のつまみ・スイッチ</h2>
+    <div class="tablewrap"><table>
+      <tr><th>つまみ・スイッチ</th><th>どうする</th><th>理由</th></tr>
+      <tr><td>GAIN(HI-Z)</td><td>中で固定:一番強く弾いても PEAK が赤くならない位置</td><td>ベースを替えない限り触らない</td></tr>
+      <tr><td>OUTPUT</td><td>中で固定:BYPASS の ON/OFF で音量が変わらない位置</td><td>LINE OUT とヘッドホンが一緒に変わる。ふだんの音量はスマホ・画面(PiPedal の出力)で変える</td></tr>
+      <tr><td>DIRECT MONITOR</td><td>OFF で固定</td><td>素の音が混ざって二重になる</td></tr>
+      <tr><td>+48V</td><td>OFF で固定</td><td>マイクは使わない</td></tr>
+      <tr><td>POWER SOURCE</td><td>USB 側で固定</td><td>電源はラズパイの USB から</td></tr>
+      <tr><td>MIC 入力・GAIN(MIC)</td><td>使わない</td><td>―</td></tr>
+      <tr><td>PHONES(ヘッドホン)</td><td><span class="q">決めること</span>:背面に出すか</td><td>今の作業ではここで聴いている。出すなら 6.3mm ステレオ(TRS)のパネル用の延長が要る</td></tr>
+    </table></div>
+    <p class="note" style="margin-top:8px">固定したつまみは、フタを開ければ回せます。マスキングテープで位置に印をつけておくと戻せます。</p>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(function () {
+  var stage = document.getElementById('stage');
+  var css = function (n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); };
+  var renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  stage.appendChild(renderer.domElement);
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(35, 1, 1, 5000);
+  var controls = new THREE.OrbitControls(camera, renderer.domElement);
+  controls.target.set(0, 25, 0);
+  controls.enableDamping = true;
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 0.9));
+  var sun = new THREE.DirectionalLight(0xffffff, 0.7); sun.position.set(-200, 400, 300); scene.add(sun);
+
+  // 配置図の座標(mm): x = 左端から 0..330、z = 奥(背面)から 0..120、y = 床から上
+  var X = function (x) { return x - 165; }, Z = function (z) { return z - 60; };
+  var topY = function (z) { return 65 - 20 * z / 120; };
+  var SLOPE = Math.atan(20 / 120);
+  var tags = [];
+  function mat(c, o) { return new THREE.MeshStandardMaterial({ color: c, roughness: .7, metalness: .1, transparent: o < 1, opacity: o == null ? 1 : o }); }
+  function box(w, h, d, c, x, y, z, parent, o) {
+    var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(c, o));
+    m.position.set(X(x + w / 2), y + h / 2, Z(z + d / 2)); (parent || scene).add(m); return m;
+  }
+  function tag(text, kind, obj, dy) { var el = document.createElement('div'); el.className = 'tag ' + (kind || ''); el.textContent = text; stage.appendChild(el); tags.push({ el: el, obj: obj, dy: dy || 0 }); }
+  function onTop(x, z, obj) { obj.position.set(X(x), topY(z), Z(z)); obj.rotation.x = SLOPE; scene.add(obj); return obj; }
+
+  // 箱(くさび形)
+  var prof = new THREE.Shape([new THREE.Vector2(0, 0), new THREE.Vector2(120, 0), new THREE.Vector2(120, 45), new THREE.Vector2(0, 65)]);
+  var shellGeo = new THREE.ExtrudeGeometry(prof, { depth: 330, bevelEnabled: false });
+  shellGeo.rotateY(-Math.PI / 2); shellGeo.translate(165, 0, -60);
+  var shellMat = new THREE.MeshStandardMaterial({ color: 0x8899aa, transparent: true, opacity: .18, side: THREE.DoubleSide, depthWrite: false });
+  var shell = new THREE.Mesh(shellGeo, shellMat); scene.add(shell);
+  var edges = new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), new THREE.LineBasicMaterial({ color: 0x6b7f8f }));
+  scene.add(edges);
+
+  var C = { dig: 0x2f6fb0, pcb: 0x2c8a4a, ana: 0xb8611c, ctl: 0x7c3aed, metal: 0xb9bec4, dark: 0x30343a, perf: 0xc9a86a };
+
+  // ラズパイの引き出し(背面から抜ける)
+  var drawer = new THREE.Group(); scene.add(drawer);
+  box(110, 3, 100, 0x8a96a3, 15, 0, 0, drawer);                       // 引き出しの板
+  box(110, 50, 3, 0x8a96a3, 15, 0, -3, drawer);                       // 前板(背面に出る面)
+  // 長い辺(USB-C・micro HDMI)を前板に向ける → そのまま背面から挿せる。USB-A・LAN は右(UR12・Pico の方)を向く
+  var pi = box(85, 1.6, 56, C.pcb, 20, 6, 4, drawer);
+  box(40, 12, 40, C.metal, 38, 7.6, 12, drawer);                      // クーラー
+  box(17, 15, 50, C.metal, 91, 7.6, 7, drawer);                       // USB-A ×4・LAN(右へ 3mm はみ出す)
+  box(51, 2.5, 5, C.dark, 27, 7.6, 55, drawer);                       // GPIO 40 ピン(手前の辺 → 天板の画面へ)
+  [31.2, 45.8, 59.2].forEach(function (x, i) { box(i ? 7 : 9, i ? 3.5 : 3.5, 4, C.dark, x - 4, 8, -3, drawer); });   // 前板の USB-C・HDMI ×2 の穴
+  for (var k = 0; k < 6; k++) box(4, 22, 3.2, 0x5d6873, 75 + k * 7, 14, -3.1, drawer);                         // 空気の穴
+  tag('ラズパイ(引き出し)', 'dig', pi, 26);
+
+  // UR12(2 枚を重ねる・推定)
+  var ur = box(145, 1.6, 60, C.pcb, 135, 4, 5); box(145, 1.6, 60, C.pcb, 135, 26, 5);
+  box(145, 20, 2, 0x55606b, 135, 5.6, 5, null, .6);
+  tag('UR12 の基板(推定)', 'ana', ur, 32);
+
+  // Pico 基板(リレーも載る)
+  // リレーは Pico と同じユニバーサル基板に載っている(11/2 KO)。ジャックに近い右の床に置く
+  var pico = box(80, 1.6, 40, C.perf, 240, 4, 72); box(51, 3, 21, C.pcb, 244, 5.6, 82);
+  var relay = box(14, 9, 10, 0x334155, 302, 5.6, 80);
+  tag('リレー', 'ana', relay, 12);
+  tag('Pico 基板(リレーも)', 'ctl', pico, 24);
+
+  // 背面のジャック
+  function jack(x, y, r, len, c) { var m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len, 24), mat(c)); m.rotation.x = Math.PI / 2; m.position.set(X(x), y, Z(-len / 2 + 2)); scene.add(m); return m; }
+  tag('IN', 'ana', jack(318, 40, 5, 8, C.metal), 8); tag('OUT', 'ana', jack(300, 40, 5, 8, C.metal), 8);
+  tag('XLR', 'ana', jack(270, 36, 12, 6, C.dark), 14); tag('GND LIFT', '', jack(246, 44, 3, 10, C.metal), 6);
+
+  // 天板の物
+  var scr = new THREE.Group(); var sm = new THREE.Mesh(new THREE.BoxGeometry(98, 3, 64), mat(0x111418)); sm.position.y = 1.5; scr.add(sm);
+  var glass = new THREE.Mesh(new THREE.BoxGeometry(80, 3.2, 54), mat(0x2a5d8f)); glass.position.y = 1.6; scr.add(glass);
+  onTop(80, 38, scr); tag('画面 3.5"(ラズパイへ)', 'dig', scr, 8);
+  function knob(x, z, r, h, c) { var g = new THREE.Group(); var k = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 28), mat(c)); k.position.y = h / 2; g.add(k); return onTop(x, z, g); }
+  tag('つまみ', 'ctl', knob(165, 38, 8, 14, C.dark), 18); knob(195, 38, 5, 6, C.metal); knob(220, 38, 5, 6, C.metal);
+  var names = ['TUNER', '1', '2', '3', 'BYPASS'];
+  var swX = [35, 100, 165, 230, 295], SW_Z = 105;
+  swX.forEach(function (x, i) {
+    var s = knob(x, SW_Z, 6, 12, C.metal); tag(names[i], 'ctl', s, 16);
+    if (i >= 1 && i <= 3) { var ring = new THREE.Mesh(new THREE.TorusGeometry(16, 2.4, 10, 40), new THREE.MeshStandardMaterial({ color: 0x46e0c4, emissive: 0x1f9e88, emissiveIntensity: .7 })); ring.rotation.x = Math.PI / 2; var g = new THREE.Group(); g.add(ring); onTop(x, SW_Z, g); }
+    else { var led = new THREE.Mesh(new THREE.SphereGeometry(3, 12, 10), new THREE.MeshStandardMaterial({ color: 0xff5544, emissive: 0xaa2211 })); var g2 = new THREE.Group(); g2.add(led); onTop(x, SW_Z - 22, g2); }
+  });
+
+  // Pico 基板からの線(長さの目安は手順 F のページ)
+  var wires = new THREE.Group(); scene.add(wires);
+  function wire(a, b, c) {
+    var mid = new THREE.Vector3((a.x + b.x) / 2, Math.max(a.y, b.y) - 4, (a.z + b.z) / 2);
+    var curve = new THREE.CatmullRomCurve3([a, mid, b]);
+    wires.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 1.1, 6), new THREE.MeshStandardMaterial({ color: c })));
+  }
+  var picoP = function (dx, dz) { return new THREE.Vector3(X(270 + dx), 6, Z(92 + dz)); };
+  swX.forEach(function (x) { wire(picoP((x - 270) * .25, 18), new THREE.Vector3(X(x), topY(SW_Z) - 3, Z(SW_Z)), C.ctl); });
+  wire(picoP(-20, -20), new THREE.Vector3(X(165), topY(38) - 3, Z(38)), C.ctl);
+  // USB(灰色)と音の線(橙)
+  var cables = new THREE.Group(); scene.add(cables);
+  function cable(pts, c, r) { var curve = new THREE.CatmullRomCurve3(pts.map(function (p) { return new THREE.Vector3(X(p[0]), p[1], Z(p[2])); }));
+    cables.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 40, r || 1.8, 8), new THREE.MeshStandardMaterial({ color: c }))); }
+  cable([[108, 16, 20], [125, 14, 30], [135, 12, 50], [140, 6, 66]], 0x6b7785);                 // ラズパイ USB-A → UR12
+  cable([[108, 16, 40], [125, 8, 72], [200, 6, 80], [244, 8, 92]], 0x6b7785);                   // ラズパイ USB-A → Pico
+  cable([[45, 9, 60], [60, 30, 72], [80, topY(45) - 6, 45]], 0x4b5b70, 1.4);                     // GPIO → 画面(8 本)
+  cable([[318, 40, 2], [320, 20, 35], [312, 7, 82]], 0xd97a2b, 1.4);                              // IN → リレー
+  cable([[300, 40, 2], [296, 22, 40], [304, 7, 80]], 0xd97a2b, 1.4);                              // リレー → OUT
+  cable([[302, 9, 84], [285, 12, 70], [240, 14, 68], [220, 10, 64]], 0xd97a2b, 1.4);             // リレー → UR12 HI-Z
+  cable([[180, 10, 64], [200, 12, 70], [270, 12, 76], [306, 9, 86]], 0xd97a2b, 1.4);             // UR12 LINE OUT L → リレー
+  cable([[160, 10, 66], [190, 18, 40], [262, 30, 6]], 0xe0a050, 1.4);                            // LINE OUT R → DI → XLR
+
+  // 操作
+  var drawerIn = document.getElementById('drawer');
+  drawerIn.addEventListener('input', function () { drawer.position.z = -drawerIn.value * 0.9; });
+  var shellIn = document.getElementById('shell');
+  shellIn.addEventListener('input', function () { shellMat.opacity = shellIn.value / 100 * .9; shell.visible = shellIn.value > 0; });
+  function toggle(id, fn) { var b = document.getElementById(id); b.addEventListener('click', function () { var on = b.getAttribute('aria-pressed') !== 'true'; b.setAttribute('aria-pressed', on); fn(on); }); }
+  var showTags = true;
+  toggle('tags', function (on) { showTags = on; tags.forEach(function (t) { t.el.hidden = !on; }); });
+  toggle('wires', function (on) { wires.visible = on; });
+  var VIEWS = { iso: [-330, 300, 420], top: [0, 560, 1], back: [-60, 140, -480], side: [-520, 120, 40] };
+  function view(k) { var v = VIEWS[k]; camera.position.set(v[0], v[1], v[2]); controls.target.set(0, 25, 0); controls.update(); }
+  document.querySelectorAll('[data-view]').forEach(function (b) { b.addEventListener('click', function () { view(b.dataset.view); }); });
+  view('iso');
+
+  function theme() { scene.background = new THREE.Color(css('--stage') || '#dfe3dc'); edges.material.color = new THREE.Color(css('--shell') || '#6b7f8f'); }
+  theme();
+  try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', theme); } catch (e) {}
+  new MutationObserver(theme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  function size() { var w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
+  new ResizeObserver(size).observe(stage); size();
+  var v = new THREE.Vector3();
+  (function loop() {
+    controls.update(); renderer.render(scene, camera);
+    if (showTags) {
+      var w = stage.clientWidth, h = stage.clientHeight;
+      tags.forEach(function (t) {
+        t.obj.getWorldPosition(v); v.y += t.dy; v.project(camera);
+        var vis = v.z < 1 && Math.abs(v.x) < 1.1 && Math.abs(v.y) < 1.1;
+        t.el.style.display = vis ? '' : 'none';
+        if (vis) t.el.style.transform = 'translate(' + ((v.x + 1) / 2 * w) + 'px,' + ((1 - v.y) / 2 * h) + 'px) translate(-50%,-120%)';
+      });
+    }
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>

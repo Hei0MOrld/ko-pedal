@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111317">
+<title>べっこペダル</title>
+<style>
+/* 11/1 v2(KO「エフェクターのつながりが見えない・追加・並べ方・プリセットを自分で作りたい」):
+   上 = プリセット(自分のだけ)/ その下 = エフェクトを縦に、上から下が音の流れ / タップでつまみ / 一番下に大きな元に戻す */
+:root { --bg:#111317; --card:#1c1f25; --card2:#23272f; --line:#2c3038; --fg:#eef0f3; --mute:#9aa1ab; --on:#2fd18b; --off:#555b65; --edit:#ff9b3d; --bad:#ff6b6b;
+        --s1:#ff5a5a; --s2:#ffd23f; --s3:#4fa3ff; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin:0; background:var(--bg); color:var(--fg); font: 17px/1.5 "Hiragino Sans","Noto Sans JP",system-ui,sans-serif; }
+body { padding: env(safe-area-inset-top) max(14px, env(safe-area-inset-right)) calc(150px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+header { display:flex; gap:14px; align-items:center; padding:10px 0 4px; color:var(--mute); font-size:14px; }
+.dot { display:inline-block; width:10px; height:10px; border-radius:50%; background:var(--off); margin-right:6px; }
+.dot.ok { background:var(--on); } .dot.ng { background:var(--bad); }
+button { font: inherit; color:inherit; border:0; border-radius:14px; background:var(--card); min-height:52px; padding:10px 14px; cursor:pointer; }
+button:active { transform: scale(.98); }
+button:disabled { opacity:.45; }
+.row { display:flex; gap:10px; align-items:center; }
+.grow { flex:1; min-width:0; }
+select { width:100%; font: 600 20px/1.3 inherit; font-family:inherit; color:var(--fg); background:var(--card); border:2px solid var(--line); border-radius:14px; min-height:56px; padding:8px 12px; }
+.msg { background:#2a2030; border-left:4px solid var(--edit); padding:10px 12px; border-radius:8px; margin:10px 0; font-size:15px; }
+.msg.bad { border-color:var(--bad); background:#301f22; }
+.io { color:var(--mute); font-size:13px; letter-spacing:.06em; margin:14px 0 4px 6px; }
+.chain { border-left:3px solid var(--line); margin-left:10px; padding-left:10px; display:grid; gap:8px; }
+.fx { background:var(--card); border:2px solid var(--line); border-radius:14px; }
+.fx.on { border-color:#2a6b52; }
+.fx.open { border-color: var(--edit); }
+.fxhead { display:flex; align-items:center; gap:10px; padding:8px 8px 8px 12px; }
+.fxname { flex:1; min-width:0; }
+.fxname b { display:block; font-size:18px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fxname span { font-size:13px; color:var(--mute); }
+.sw { font-size:12px; font-weight:800; border-radius:6px; padding:1px 7px; color:#111; margin-right:6px; }
+.toggle { width:74px; min-height:44px; border-radius:22px; font-weight:800; font-size:15px; background:#2b2f37; color:var(--mute); }
+.toggle.on { background:var(--on); color:#062b1b; }
+.body { padding:4px 12px 12px; border-top:1px solid var(--line); }
+.tools { display:grid; grid-template-columns: repeat(4,1fr); gap:6px; margin:8px 0; }
+.tools button { min-height:46px; font-size:14px; padding:6px; background:var(--card2); }
+.knob { margin:8px 0; } .knob label { display:flex; justify-content:space-between; font-size:15px; }
+input[type=range] { width:100%; height:36px; accent-color: var(--edit); }
+.add { width:100%; margin-top:10px; border:2px dashed var(--line); background:transparent; color:var(--edit); font-weight:800; }
+.sheet { position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:20; display:flex; align-items:flex-end; }
+.sheet > div { background:var(--bg); width:100%; max-height:80vh; overflow:auto; border-radius:18px 18px 0 0; padding:14px max(14px, env(safe-area-inset-right)) calc(20px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); }
+.sheet h3 { margin:14px 0 6px; font-size:15px; color:var(--mute); }
+.cat { display:grid; grid-template-columns: repeat(2,1fr); gap:8px; }
+.cat button { min-height:48px; font-size:15px; text-align:left; }
+textarea, input[type=text] { width:100%; font:inherit; color:var(--fg); background:var(--card); border:2px solid var(--line); border-radius:14px; padding:12px; }
+textarea { min-height:90px; }
+.chips { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
+.chips button { min-height:44px; font-size:15px; background:#22262d; }
+.change { font-size:15px; padding:4px 0; border-bottom:1px solid var(--line); }
+section[hidden], .sheet[hidden] { display:none !important; }
+nav { position:fixed; left:0; right:0; bottom:0; background:#0c0d10; border-top:1px solid var(--line); padding: 10px max(14px, env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)); z-index:10; }
+#undo { width:100%; min-height:58px; font-size:20px; font-weight:800; background:#2b2f37; margin-bottom:8px; }
+.tabs { display:grid; grid-template-columns: repeat(3,1fr); gap:8px; }
+.tabs button { min-height:48px; font-weight:700; background:transparent; border:2px solid var(--line); }
+.tabs button.cur { border-color: var(--edit); color: var(--edit); }
+h2 { font-size:18px; margin:18px 0 8px; }
+.small { font-size:13px; color:var(--mute); }
+a { color: var(--edit); }
+:focus-visible { outline: 3px solid var(--edit); outline-offset: 2px; }
+.handle { font-size:24px; color:var(--mute); padding:6px 8px; touch-action:none; cursor:grab; user-select:none; }
+.info { min-height:30px; padding:0 8px; margin-left:6px; background:transparent; color:var(--edit); font-size:17px; }
+.ghost { opacity:.4; } .dragging { border-color: var(--edit) !important; }
+.seg { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
+.seg button { min-height:42px; font-weight:800; background:transparent; border:2px solid var(--line); color:var(--mute); }
+.seg button.cur { border-color: var(--edit); color: var(--edit); }
+</style>
+<script src="/static/sortable.min.js"></script>   <!-- 11/1: 会場はネットが無いので中に置く(SortableJS 1.15.2) -->
+</head>
+<body>
+<header><span><span id="dPedal" class="dot"></span>ペダル</span><span><span id="dPc" class="dot ok"></span>PC</span><span id="busy"></span></header>
+<div id="msg" hidden></div>
+
+<section id="tNow">
+  <div class="seg" id="instSeg"><button data-i="bass">ベース</button><button data-i="guitar">ギター</button></div>
+  <div class="row">
+    <div class="grow"><select id="presetSel" aria-label="プリセット"></select></div>
+    <button id="newBtn" style="min-height:56px">＋新規</button>
+  </div>
+  <div class="io">入力(楽器)</div>
+  <div class="chain" id="chain"></div>
+  <div class="io">出力(アンプ・ヘッドホン)</div>
+  <button class="add" id="addBtn">＋ エフェクトを足す</button>
+  <div class="row" style="margin-top:12px">
+    <button class="grow" id="keep">保存(上書き)</button>
+    <button class="grow" id="saveAs">名前をつけて保存</button>
+  </div>
+  <p class="small">色つきの 1・2・3 は足元のスイッチです。並べ替えると、上から 3 つ(ゲート・チューナーを除く)に付け直します。本体の画面にもこの 3 つが出ます。</p>
+</section>
+
+<section id="tFind" hidden>
+  <h2>音を探す</h2>
+  <div id="toneBox"></div>
+  <button id="t3kGo" style="width:100%;background:#fff;color:#111;font-weight:800"><span style="font-weight:900">TONE3000</span> で音を選ぶ</button>
+  <p class="small">有名なアンプやエフェクターを録った音(AI モデル)を選ぶと、今の並びの NAM に入ります(NAM が無ければ「＋ エフェクトを足す」→ アンプ・歪み → NAM)。入れた直後は小さめの音から 2 秒で戻ります。</p>
+  <p class="small">Powered by <a href="https://www.tone3000.com/" target="_blank">TONE3000</a></p>
+</section>
+
+<section id="tAi" hidden>
+  <h2>AI に頼む</h2>
+  <textarea id="aiText" placeholder="例: もっとゴリっと / 指弾きで丸く / 低音を残して上だけ歪ませて"></textarea>
+  <div class="chips" id="aiChips"></div>
+  <button id="aiGo" style="width:100%;background:var(--edit);color:#111;font-weight:800">頼む</button>
+  <div id="aiOut"></div>
+  <p class="small">AI が変えるのは今の並びのつまみだけです。音量は一度に少しずつしか上げません。気に入らなければ「元に戻す」。</p>
+</section>
+
+<div class="sheet" id="addSheet" hidden><div>
+  <div class="row"><b class="grow" id="addTitle">エフェクトを足す</b><button id="addClose" style="min-height:44px">閉じる</button></div>
+  <div id="catBox"></div>
+</div></div>
+
+<nav>
+  <button id="undo" disabled>↶ 元に戻す</button>
+  <div class="tabs"><button data-t="tNow" class="cur">いまの音</button><button data-t="tFind">音を探す</button><button data-t="tAi">AI に頼む</button></div>
+</nav>
+
+<script>
+const $ = s => document.querySelector(s);
+let S = null, open = null, CAT = null, showAll = false;
+const SW = ['', 'var(--s1)', 'var(--s2)', 'var(--s3)'];
+// 11/1 KO「ギターで使うときもベースで使うときもある」: 楽器を選ぶと AI の決まりと例が変わる(この端末に覚える)
+const SAMPLES = {bass: ['もっとゴリっと', '指弾きで丸く', 'スラップで抜ける音', '低音を残して上だけ歪ませて', 'バンドの中で埋もれない音', '歪みを少し弱く'],
+                 guitar: ['もっと歪ませて', 'クランチに', '80年代のハードロック', '耳に痛くない高音に', 'クリーンにコーラスを薄く', 'ソロで前に出る音']};
+let INST = 'bass'; try { INST = localStorage.getItem('inst') || 'bass'; } catch (e) {}
+let dragging = false;
+
+function msg(text, bad) { const m = $('#msg'); if (!text) { m.hidden = true; return; } m.hidden = false; m.className = 'msg' + (bad ? ' bad' : ''); m.textContent = text; }
+async function api(path, body) {
+  $('#busy').textContent = '…';
+  try {
+    const r = await fetch(path, body === undefined ? {} : {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.detail || j.error || ('エラー ' + r.status));
+    $('#dPedal').className = 'dot ok'; $('#dPc').className = 'dot ok'; return j;
+  } catch (e) {
+    if (String(e).includes('Failed to fetch')) { $('#dPc').className = 'dot ng'; msg('PC につながりません(PC が寝ているかも)。ペダルの画面を直接開く: http://<ペダルの IP>', true); }
+    else { $('#dPedal').className = 'dot ng'; msg(e.message, true); }
+    throw e;
+  } finally { $('#busy').textContent = ''; }
+}
+const fmt = v => Math.abs(v) >= 10 ? v.toFixed(0) : Math.abs(v) >= 1 ? v.toFixed(1) : v.toFixed(2);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+
+function render(st) {
+  S = st;
+  // プリセット(自分のだけ。「最初から入っている音も見る」で全部)
+  const sel = $('#presetSel'); sel.innerHTML = '';
+  for (const p of st.presets.filter(p => showAll || !p.factory || p.id === st.presetId)) {
+    const o = el('option', null, p.name + (p.factory ? '(最初から)' : '')); o.value = p.id; o.selected = p.id === st.presetId; sel.appendChild(o);
+  }
+  const more = el('option', null, showAll ? '― 自分のだけにする ―' : '― 最初から入っている音も見る ―'); more.value = 'toggle'; sel.appendChild(more);
+  $('#undo').disabled = !st.canUndo;
+  $('#undo').textContent = st.canUndo ? `↶ 元に戻す(${st.canUndo})` : '↶ 元に戻す';
+  // 並び
+  const ch = $('#chain'); ch.innerHTML = '';
+  if (!st.items.length) ch.appendChild(el('p', 'small', 'まだ何もありません。下の「＋ エフェクトを足す」から始めてください。'));
+  st.items.forEach((it, idx) => {
+    const box = el('div', 'fx' + (it.enabled ? ' on' : '') + (open === it.instanceId ? ' open' : ''));
+    box.dataset.iid = it.instanceId; if (!it.top) box.dataset.fixed = '1';
+    const head = el('div', 'fxhead'); const nm = el('div', 'fxname');
+    const hd = el('span', 'handle', it.top ? '≡' : '·'); hd.title = '押したまま上下に動かす'; head.appendChild(hd);
+    const b = el('b'); if (it.switch) { const s = el('span', 'sw', it.switch); s.style.background = SW[it.switch]; b.appendChild(s); }
+    b.appendChild(document.createTextNode(it.title || it.name)); nm.appendChild(b);
+    nm.appendChild(el('span', null, it.model ? it.model : (open === it.instanceId ? 'タップで閉じる' : 'タップでつまみ')));
+    nm.onclick = () => { open = open === it.instanceId ? null : it.instanceId; render(S); };
+    const tg = el('button', 'toggle' + (it.enabled ? ' on' : ''), it.enabled ? 'ON' : 'OFF');
+    tg.onclick = async e => { e.stopPropagation(); msg(''); render(await api('/api/enable', {instanceId: it.instanceId, enabled: !it.enabled})); };
+    head.append(nm, tg); box.appendChild(head);
+    if (open === it.instanceId) {
+      const body = el('div', 'body');
+      const tools = el('div', 'tools');
+      const up = el('button', null, '▲ 上へ'), dn = el('button', null, '▼ 下へ'), rm = el('button', null, '🗑 外す'), ad = el('button', null, '＋ 後ろに');
+      up.disabled = !it.top || idx === 0; dn.disabled = !it.top || idx === st.items.length - 1; rm.disabled = !it.top;
+      up.onclick = async () => render(await api('/api/move', {instanceId: it.instanceId, delta: -1}));
+      dn.onclick = async () => render(await api('/api/move', {instanceId: it.instanceId, delta: 1}));
+      rm.onclick = async () => { open = null; render(await api('/api/remove', {instanceId: it.instanceId})); msg('外しました(元に戻すで戻せます)'); };
+      ad.onclick = () => openAdd(it.instanceId, it.title || it.name);
+      tools.append(up, dn, rm, ad); body.appendChild(tools);
+      if (it.uri.includes('toob-nam')) { const t = el('button', null, 'この音を TONE3000 で変える'); t.style.cssText = 'width:100%;margin:4px 0'; t.onclick = () => { location.href = '/t3k/start'; }; body.appendChild(t); }
+      for (const c of it.controls.filter(c => !c.toggle && !c.choices.length)) {
+        const row = el('div', 'knob'); const lab = el('label'); const v = el('span');
+        // 11/1 KO「わからない項目に(訳)と、いじるとどうなるか」: 日本語名(英語名)+ ⓘ で説明
+        const nmEl = el('span'); nmEl.appendChild(document.createTextNode(c.ja || c.name));
+        if (c.ja && c.ja !== c.name) nmEl.appendChild(el('span', 'small', ' (' + c.name + ')'));
+        const help = el('div', 'small', c.help || ''); help.hidden = true; help.style.margin = '2px 0 4px';
+        if (c.help) { const i = el('button', 'info', 'ⓘ'); i.onclick = () => { help.hidden = !help.hidden; }; nmEl.appendChild(i); }
+        lab.append(nmEl, v); const r = el('input'); r.type = 'range';
+        r.min = c.min; r.max = c.max; r.step = (c.max - c.min) / 200; r.value = c.value;
+        const unit = c.units && !['none', 'unknown'].includes(c.units) ? ' ' + c.units : '';
+        v.textContent = fmt(c.value) + unit;
+        r.oninput = () => { v.textContent = fmt(+r.value) + unit; };
+        r.onchange = async () => { const j = await api('/api/control', {instanceId: it.instanceId, symbol: c.symbol, value: +r.value}); r.value = j.value; v.textContent = fmt(j.value) + unit; refresh(); };
+        row.append(lab, help, r); body.appendChild(row);
+      }
+      box.appendChild(body);
+    }
+    ch.appendChild(box);
+  });
+  if (window.Sortable && !ch._sortable) {
+    ch._sortable = Sortable.create(ch, {handle: '.handle', animation: 150, ghostClass: 'ghost', chosenClass: 'dragging',
+      filter: '[data-fixed]', delay: 0, touchStartThreshold: 3,
+      onStart: () => { dragging = true; },
+      onEnd: async () => {
+        dragging = false;
+        const order = [...ch.children].filter(x => x.dataset.iid).map(x => +x.dataset.iid);
+        msg(''); render(await api('/api/order', {order}));
+      }});
+  }
+}
+async function refresh() { if (!$('#addSheet').hidden || dragging) return; try { render(await api('/api/state')); } catch (e) {} }
+
+$('#presetSel').onchange = async e => {
+  if (e.target.value === 'toggle') { showAll = !showAll; render(S); return; }
+  msg(''); open = null; render(await api('/api/preset', {id: +e.target.value}));
+};
+$('#newBtn').onclick = async () => {
+  const name = prompt('新しいプリセットの名前', '自分の音'); if (name === null) return;
+  open = null; render(await api('/api/newpreset', {name: name || '自分の音'})); msg('新しいプリセットを作りました。「＋ エフェクトを足す」から並べてください');
+};
+async function openAdd(after, label) {
+  $('#addTitle').textContent = after ? `「${label}」の後ろに足す` : 'いちばん下に足す';
+  if (!CAT) CAT = await api('/api/catalog');
+  const box = $('#catBox'); box.innerHTML = '';
+  for (const g of CAT) {
+    if (!g.items.length) continue;
+    box.appendChild(el('h3', null, g.title));
+    const grid = el('div', 'cat');
+    for (const x of g.items) { const b = el('button', null, x.name); b.onclick = async () => { $('#addSheet').hidden = true; render(await api('/api/add', {uri: x.uri, after: after || null})); msg(`「${x.name}」を足しました`); }; grid.appendChild(b); }
+    box.appendChild(grid);
+  }
+  $('#addSheet').hidden = false;
+}
+$('#addBtn').onclick = () => openAdd(null);
+$('#addClose').onclick = () => { $('#addSheet').hidden = true; };
+$('#addSheet').onclick = e => { if (e.target.id === 'addSheet') $('#addSheet').hidden = true; };
+$('#undo').onclick = async () => { msg(''); const j = await api('/api/undo', {}); render(j); msg(j.undone ? '1 つ前に戻しました' : 'これ以上は戻れません'); };
+$('#keep').onclick = async () => { const j = await api('/api/keep', {}); msg('保存しました。電源を切っても残ります'); };
+$('#saveAs').onclick = async () => { const name = prompt('名前', (S && S.preset) || '自分の音'); if (!name) return; render(await api('/api/saveas', {name})); msg(`「${name}」として保存しました`); };
+function tab(id) { document.querySelector(`.tabs button[data-t="${id}"]`).click(); }
+for (const t of document.querySelectorAll('.tabs button')) t.onclick = () => {
+  document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('cur', x === t));
+  ['tNow', 'tFind', 'tAi'].forEach(id => $('#' + id).hidden = id !== t.dataset.t);
+};
+function setInst(i) {
+  INST = i; try { localStorage.setItem('inst', i); } catch (e) {}
+  document.querySelectorAll('#instSeg button').forEach(b => b.classList.toggle('cur', b.dataset.i === i));
+  const box = $('#aiChips'); box.innerHTML = '';
+  for (const s of SAMPLES[i]) { const b = el('button', null, s); b.onclick = () => { $('#aiText').value = s; }; box.appendChild(b); }
+  $('#aiText').placeholder = '例: ' + SAMPLES[i].slice(0, 3).join(' / ');
+}
+document.querySelectorAll('#instSeg button').forEach(b => b.onclick = () => setInst(b.dataset.i));
+setInst(INST);
+$('#aiGo').onclick = async () => {
+  const text = $('#aiText').value.trim(); if (!text) return;
+  $('#aiGo').disabled = true; $('#aiGo').textContent = 'AI が考えています…(20 秒ほど)'; $('#aiOut').innerHTML = '';
+  try {
+    const j = await api('/api/ai', {text, instrument: INST}); render(j);
+    const out = $('#aiOut'); out.appendChild(el('p', null, j.say || '変えました'));
+    for (const a of j.applied) out.appendChild(el('div', 'change', `${a.name}: ${a.before == null ? '?' : fmt(a.before)} → ${fmt(a.after)}`));
+    if (!j.applied.length) out.appendChild(el('p', null, 'つまみは変えませんでした'));
+  } catch (e) {} finally { $('#aiGo').disabled = false; $('#aiGo').textContent = '頼む'; }
+};
+$('#t3kGo').onclick = () => { location.href = '/t3k/start'; };
+async function showTone(id) {
+  tab('tFind');
+  const box = $('#toneBox'); box.innerHTML = '<p>TONE3000 から読み込み中…</p>';
+  try {
+    const t = await api('/api/tone/' + id);
+    box.innerHTML = '';
+    const card = el('div', 'fx'); card.style.padding = '12px';
+    const top = el('div', 'row');
+    if (t.image) { const im = el('img'); im.alt = ''; im.src = t.image; im.style.cssText = 'width:64px;height:64px;object-fit:cover;border-radius:10px'; top.appendChild(im); }
+    const tt = el('div'); tt.append(el('b', null, t.title), el('div', 'small', 'by ' + t.author)); top.appendChild(tt);
+    card.append(top, el('p', 'small', 'どれを入れるか選んでください(つまみの設定違いです)'));
+    for (const m of t.models) {
+      const b = el('button', null, m.name || ('モデル ' + m.id)); b.style.cssText = 'width:100%;margin:6px 0;text-align:left';
+      b.onclick = async () => {
+        card.querySelectorAll('button').forEach(x => x.disabled = true);
+        b.textContent = '✓ ダウンロード → ペダルへ → 読み込み中…';
+        try { const j = await api('/api/tone/install', {toneId: t.id, modelId: m.id}); tab('tNow'); render(j); msg(`入れました: ${j.loaded}(by ${j.author})。小さめの音から戻しています`); }
+        catch (e) { card.querySelectorAll('button').forEach(x => x.disabled = false); b.textContent = m.name; }
+      };
+      card.appendChild(b);
+    }
+    box.appendChild(card);
+  } catch (e) { box.innerHTML = ''; }
+}
+// 11/1 ラズパイ版(ペダル+スマホだけで完結): 音を探す・AI に頼むはネットと PC が要るので、PC 版へのリンクにする
+if (window.ON_PI) {
+  const pc = window.PEDAL_PC_URL || 'https://your-pc.your-tailnet.ts.net/';   // 自分の PC の tailscale serve の URL
+  for (const id of ['tFind', 'tAi']) {
+    const sec = $('#' + id); sec.innerHTML = '';
+    sec.append(el('h2', null, id === 'tFind' ? '音を探す(TONE3000)' : 'AI に頼む'),
+      el('p', null, 'これは家で、PC が起動していて Tailscale がつながっているときに使えます(ネットと PC の AI が要るため)。会場では、家で作って保存したプリセットを使ってください。'));
+    const a = el('a', null, 'PC 版を開く'); a.href = pc; a.style.cssText = 'display:block;padding:14px;border:2px solid var(--edit);border-radius:14px;text-align:center;font-weight:800';
+    sec.appendChild(a);
+  }
+}
+const q = new URLSearchParams(location.search);
+if (q.get('msg')) msg(q.get('msg'), true);
+if (q.get('tone')) showTone(q.get('tone'));
+if (q.has('msg') || q.has('tone')) history.replaceState(null, '', '/');
+refresh(); setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 2000);   // 11/1: 足元のスイッチ・本体のつまみで変えた分を 2 秒で追う
+</script>
+</body>
+</html>

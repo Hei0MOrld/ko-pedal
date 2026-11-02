@@ -1,0 +1,15 @@
+[Unit]
+Description=Pedal screen + knob + Pico LED sync (bass_pedal/pi/pedal_ui.py, 2026-10-20)
+After=pipedald.service sound.target
+Wants=pipedald.service
+StartLimitIntervalSec=0
+
+[Service]
+User=ko
+ExecStart=/usr/bin/python3 -u /home/ko/pedal/pedal_ui.py
+Restart=always
+RestartSec=2
+Nice=10
+
+[Install]
+WantedBy=multi-user.target

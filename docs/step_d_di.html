@@ -1,0 +1,206 @@
+<title>ペダルの DI 出力</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column workbench sheet, same family as the power/relay/footswitch pages — overview, circuit, parts, steps, checks at home, check at the mixer */
+:root {
+  --bg: #f3f2ee; --paper: #ffffff; --fg: #1d2126; --muted: #5a616b; --line: #d9d6cf; --accent: #0f7c6c;
+  --part: #e9e6df; --part-edge: #8d939b; --sig: #1d4ed8; --cold: #7c3aed; --gnd: #262626; --cap: #c2410c;
+  --ok: #2e7d32; --warn: #a15c00; --bad: #c62828;
+  --f-head: "M PLUS 1p", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #16181b; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840; --accent: #3cc2ab;
+  --part: #2b2e33; --part-edge: #6b7280; --sig: #60a5fa; --cold: #c4b5fd; --gnd: #d4d4d4; --cap: #fb923c;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #16181b; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840; --accent: #3cc2ab;
+  --part: #2b2e33; --part-edge: #6b7280; --sig: #60a5fa; --cold: #c4b5fd; --gnd: #d4d4d4; --cap: #fb923c;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-head); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; display: grid; gap: 24px; }
+h1 { font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+h2 { font-weight: 800; font-size: 1.2rem; margin: 0 0 10px; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+.note { font-size: .9rem; color: var(--muted); margin: 10px 0 0; }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 640px; width: 100%; height: auto; }
+.diagram text { font-family: var(--f-head); font-size: 13px; fill: var(--fg); }
+.diagram .mono { font-family: var(--f-mono); font-weight: 700; }
+.diagram .small { font-size: 11px; fill: var(--muted); }
+.tablewrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+td.pin { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.case { border-left: 4px solid var(--line); padding: 8px 12px; border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--paper) 92%, var(--fg)); margin-top: 10px; }
+.case.ok { border-color: var(--ok); } .case.bad { border-color: var(--bad); } .case.warn { border-color: var(--warn); }
+.case b { display: block; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.mode { border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width: 0; }
+.mode b { display: block; margin-bottom: 4px; }
+.sig { color: var(--sig); font-weight: 700; } .cold { color: var(--cold); font-weight: 700; } .cap { color: var(--cap); font-weight: 700; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<main>
+  <header>
+    <h1>ペダルの DI 出力(手順 D)</h1>
+    <p class="lead">PA のミキサーに送る XLR の出口を作ります。UR12 の LINE OUT L(エフェクトがかかった音)を、抵抗でマイクの大きさまで下げて XLR に出します。
+      部品はぜんぶ届いた部品セットと、注文済みの XLR(A-613)・トグル(A-4567)です。買い足しはありません。</p>
+  </header>
+
+  <section>
+    <h2>しくみ</h2>
+    <div class="two">
+      <div class="mode"><b>音を下げる(約 −30dB)</b>10kΩ と 330Ω で、ライン(UR12 の出口)の大きさをマイクの大きさにする。ミキサーのマイク入力にそのまま挿せる</div>
+      <div class="mode"><b>ノイズに強くする</b>XLR の 3 番(COLD)にも、2 番と同じ 330Ω を GND までつなぐ。長いケーブルで乗るノイズを、ミキサーが打ち消せる</div>
+      <div class="mode"><b>48V よけ</b>ミキサーのファンタム電源(48V)が来ても通さない。50V のコンデンサー 1 個では余裕がないので、10µF 50V を 2 個まっすぐつないで 100V まで耐える</div>
+      <div class="mode"><b>GND LIFT</b>トグルで XLR の 1 番と GND を切り離す。ブーンというノイズが出たときに切り替える</div>
+    </div>
+    <div class="case warn"><b>BYPASS と TUNER のときは DI も無音</b>BYPASS では音が UR12 を通らないので、DI には何も来ません。エフェクト前の音(PRE)が欲しくなったら、あとで足します。</div>
+  </section>
+
+  <section>
+    <h2>回路図</h2>
+    <div class="diagram">
+      <svg viewBox="0 0 700 380" role="img" aria-label="UR12 LINE OUT L から 10µF、10kΩ を通って点 A。点 A から 330Ω で GND。点 A から 10µF 2 個の直列(それぞれに 1MΩ を横に)で XLR 2 番。点 B は 330Ω で GND、10µF 2 個の直列で XLR 3 番。XLR 1 番はトグルを通って GND。">
+        <rect x="8" y="44" width="122" height="52" rx="8" fill="var(--part)" stroke="var(--part-edge)" stroke-width="2"/>
+        <text x="69" y="66" text-anchor="middle">UR12 LINE OUT L</text>
+        <text x="69" y="84" text-anchor="middle" class="small">リレー 7 番の列</text>
+        <path d="M130 70 H160" stroke="var(--sig)" stroke-width="3"/>
+        <rect x="160" y="58" width="44" height="24" rx="4" fill="var(--paper)" stroke="var(--cap)" stroke-width="2"/>
+        <text x="182" y="75" text-anchor="middle" class="mono" style="font-size:11px">10µF</text>
+        <text x="182" y="50" text-anchor="middle" class="small">C1(+ が左)</text>
+        <path d="M204 70 H230" stroke="var(--sig)" stroke-width="3"/>
+        <rect x="230" y="60" width="50" height="20" rx="3" fill="var(--paper)" stroke="var(--sig)" stroke-width="2"/>
+        <text x="255" y="75" text-anchor="middle" class="mono" style="font-size:11px">10kΩ</text>
+        <path d="M280 70 H330" stroke="var(--sig)" stroke-width="3"/>
+        <circle cx="330" cy="70" r="5" fill="var(--sig)"/>
+        <text x="322" y="56" class="mono">A</text>
+        <path d="M330 70 V130" stroke="var(--sig)" stroke-width="3"/>
+        <rect x="320" y="130" width="20" height="44" rx="3" fill="var(--paper)" stroke="var(--sig)" stroke-width="2"/>
+        <text x="348" y="157" class="mono" style="font-size:11px">330Ω</text>
+        <path d="M330 174 V340" stroke="var(--gnd)" stroke-width="3"/>
+        <path d="M330 70 H400" stroke="var(--sig)" stroke-width="3"/>
+        <rect x="400" y="58" width="44" height="24" rx="4" fill="var(--paper)" stroke="var(--cap)" stroke-width="2"/>
+        <text x="422" y="75" text-anchor="middle" class="mono" style="font-size:11px">10µF</text>
+        <path d="M444 70 H480" stroke="var(--sig)" stroke-width="3"/>
+        <rect x="480" y="58" width="44" height="24" rx="4" fill="var(--paper)" stroke="var(--cap)" stroke-width="2"/>
+        <text x="502" y="75" text-anchor="middle" class="mono" style="font-size:11px">10µF</text>
+        <path d="M524 70 H600" stroke="var(--sig)" stroke-width="3"/>
+        <path d="M392 70 V30 H404 M440 30 H462 V70 M462 30 H484 M520 30 H532 V70" fill="none" stroke="var(--muted)" stroke-width="2"/>
+        <rect x="404" y="22" width="36" height="16" rx="3" fill="var(--paper)" stroke="var(--muted)" stroke-width="2"/>
+        <text x="422" y="34" text-anchor="middle" class="mono" style="font-size:10px">1MΩ</text>
+        <rect x="484" y="22" width="36" height="16" rx="3" fill="var(--paper)" stroke="var(--muted)" stroke-width="2"/>
+        <text x="502" y="34" text-anchor="middle" class="mono" style="font-size:10px">1MΩ</text>
+        <text x="462" y="104" text-anchor="middle" class="small">どちらも − が左、+ が右(XLR 側)</text>
+        <circle cx="390" cy="200" r="5" fill="var(--cold)"/>
+        <text x="372" y="196" class="mono">B</text>
+        <path d="M390 200 V230" stroke="var(--cold)" stroke-width="3"/>
+        <rect x="380" y="230" width="20" height="44" rx="3" fill="var(--paper)" stroke="var(--cold)" stroke-width="2"/>
+        <text x="408" y="257" class="mono" style="font-size:11px">330Ω</text>
+        <path d="M390 274 V340" stroke="var(--gnd)" stroke-width="3"/>
+        <path d="M390 200 H440" stroke="var(--cold)" stroke-width="3"/>
+        <rect x="440" y="188" width="44" height="24" rx="4" fill="var(--paper)" stroke="var(--cap)" stroke-width="2"/>
+        <text x="462" y="205" text-anchor="middle" class="mono" style="font-size:11px">10µF</text>
+        <path d="M484 200 H500" stroke="var(--cold)" stroke-width="3"/>
+        <rect x="500" y="188" width="44" height="24" rx="4" fill="var(--paper)" stroke="var(--cap)" stroke-width="2"/>
+        <text x="522" y="205" text-anchor="middle" class="mono" style="font-size:11px">10µF</text>
+        <path d="M544 200 H600" stroke="var(--cold)" stroke-width="3"/>
+        <text x="492" y="236" text-anchor="middle" class="small">こちらも 1MΩ を 1 個ずつ横に(図は省略)</text>
+        <rect x="600" y="40" width="92" height="250" rx="10" fill="var(--part)" stroke="var(--part-edge)" stroke-width="2"/>
+        <text x="646" y="64" text-anchor="middle">XLR オス</text>
+        <text x="646" y="80" text-anchor="middle" class="small">A-613</text>
+        <text x="612" y="112" class="mono" style="fill:var(--sig)">2 HOT</text>
+        <path d="M600 70 V104" stroke="var(--sig)" stroke-width="3" fill="none"/>
+        <text x="612" y="206" class="mono" style="fill:var(--cold)">3 COLD</text>
+        <text x="612" y="276" class="mono">1 GND</text>
+        <path d="M600 270 H560 V300" stroke="var(--gnd)" stroke-width="3" fill="none"/>
+        <rect x="530" y="300" width="60" height="26" rx="5" fill="var(--paper)" stroke="var(--fg)" stroke-width="2"/>
+        <text x="560" y="318" text-anchor="middle" style="font-size:11px">LIFT</text>
+        <path d="M560 326 V340" stroke="var(--gnd)" stroke-width="3"/>
+        <path d="M20 340 H690" stroke="var(--gnd)" stroke-width="4"/>
+        <text x="20" y="364">GND の列(ブレッドボード。UR12・ラズパイと共通)</text>
+      </svg>
+    </div>
+    <p class="note">10µF の向き: 長い足と、帯のない側が +。帯(−)の側を点 A・B(回路側)に、+ を XLR 側に。2 個つなぐときは、1 個目の + と 2 個目の − をつなぐ。</p>
+  </section>
+
+  <section>
+    <h2>使う部品</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>部品</th><th>数</th><th>どこから</th><th>場所</th></tr></thead>
+        <tbody>
+          <tr><td>抵抗 10kΩ(茶黒黒赤茶)</td><td>1</td><td>部品セット</td><td>C1 と点 A の間</td></tr>
+          <tr><td>抵抗 330Ω(橙橙黒黒茶)</td><td>2</td><td>部品セット</td><td>点 A–GND、点 B–GND</td></tr>
+          <tr><td>抵抗 1MΩ(茶黒黒黄茶)</td><td>4</td><td>部品セット</td><td>直列にした 10µF の横に 1 個ずつ</td></tr>
+          <tr><td>電解コンデンサー 10µF 50V</td><td>5</td><td>部品セット</td><td>C1 に 1、HOT に 2、COLD に 2</td></tr>
+          <tr><td>XLR オス(金属)A-613</td><td>1</td><td>Tayda(届いたもの)</td><td>1・2・3 の端子に線をはんだ付け</td></tr>
+          <tr><td>トグル A-4567</td><td>1</td><td>Tayda(届いたもの)</td><td>GND LIFT</td></tr>
+          <tr><td>ジャンパー線(片側を切ったもの)</td><td>5</td><td>手持ち</td><td>XLR に 3 本、トグルに 2 本</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">抵抗の色は、帯 5 本の金属皮膜の場合です。迷ったらテスターの抵抗モードで測ってください。</p>
+  </section>
+
+  <section>
+    <h2>手順</h2>
+    <ol class="steps">
+      <li><b>電源を抜く</b>(アダプターを抜いた状態で作業する)</li>
+      <li><b>XLR に線を 3 本はんだ付け</b>。端子の根元に小さく 1・2・3 と書いてあります。線の色を決めておく(例: 2 = 赤、3 = 白、1 = 黒)</li>
+      <li><b>トグルに線を 2 本</b>。真ん中の足と、端の足 1 本。もう片方の端は空けておく</li>
+      <li>ブレッドボードの空いている所に、点 A と点 B の列を 1 つずつ決める</li>
+      <li>リレー 7 番の列(UR12 LINE OUT L が来ている列)→ <span class="cap">C1 10µF</span>(+ がリレー側)→ <span class="sig">10kΩ</span> → 点 A の列</li>
+      <li>点 A の列 → <span class="sig">330Ω</span> → GND の列。点 B の列 → <span class="cold">330Ω</span> → GND の列</li>
+      <li>点 A → 10µF(− が点 A)→ 10µF → XLR の 2 番。2 個のそれぞれの横に 1MΩ</li>
+      <li>点 B → 10µF(− が点 B)→ 10µF → XLR の 3 番。2 個のそれぞれの横に 1MΩ</li>
+      <li>XLR の 1 番 → トグルの真ん中。トグルの端 → GND の列</li>
+    </ol>
+    <div class="case warn"><b>ブレッドボードの GND の列</b>長い列は真ん中で切れています。DI を右半分に作るなら、左右をジャンパー線でつなぐ。</div>
+  </section>
+
+  <section>
+    <h2>家でテスターで確かめる(電源は抜いたまま)</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>当てる所</th><th>モード</th><th>OK</th></tr></thead>
+        <tbody>
+          <tr><td class="pin">XLR 1 番 – GND の列</td><td>導通(ピー音)</td><td>トグルの片側で鳴る、反対側で鳴らない</td></tr>
+          <tr><td class="pin">XLR 2 番 – GND の列</td><td>導通(ピー音)</td><td>鳴りっぱなしにならない(一瞬鳴るのは OK、コンデンサーに電気がたまるため)</td></tr>
+          <tr><td class="pin">XLR 3 番 – GND の列</td><td>導通(ピー音)</td><td>同じく鳴りっぱなしにならない</td></tr>
+          <tr><td class="pin">XLR 2 番 – 3 番</td><td>導通(ピー音)</td><td>鳴りっぱなしにならない</td></tr>
+          <tr><td class="pin">点 A – GND の列</td><td>抵抗</td><td>約 320〜330Ω</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">トグルの「鳴る側」が GND つなぎ(ふだん)、「鳴らない側」が LIFT。箱に付けるときに文字を書きます。</p>
+  </section>
+
+  <section>
+    <h2>大学のミキサーで音を確かめる</h2>
+    <ol class="steps">
+      <li>そのチャンネルの <b>フェーダーを下げ、GAIN を最小</b>にする。<b>+48V(ファンタム)が OFF</b> か確かめる</li>
+      <li>XLR ケーブルでペダルの DI とミキサーのマイク入力をつなぐ</li>
+      <li>ペダルの電源を入れて、起動したら弾きながら GAIN を上げる(マイクと同じくらいの位置で足りるはず)。フェーダーを上げて音を出す</li>
+      <li>1・2・3 を踏んで、エフェクトの変化が PA から聞こえるか確かめる。BYPASS と TUNER では DI が無音になるのが正しい動き</li>
+      <li>ブーンというノイズがあれば、LIFT を切り替えて減るか聞く</li>
+      <li>余裕があれば: フェーダーを下げてから +48V を ON にして、また音を出す。音もノイズも変わらなければ 48V よけが効いている。ON/OFF はフェーダーを下げているときだけ</li>
+    </ol>
+    <div class="case bad"><b>すぐやめるとき</b>大きなボツッという音が続く、音が割れる、どこかが熱い → フェーダーを下げて、ペダルの電源を抜く。結果を Claude に教えてください。</div>
+  </section>
+
+  <section>
+    <h2>この手順のあと</h2>
+    <p style="margin:0">XLR とトグルは、まだ板や箱に付けずに置いたままで大丈夫です。次は E(画面とつまみ)です。</p>
+  </section>
+</main>

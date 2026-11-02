@@ -1,0 +1,595 @@
+<title>ペダルの音の基板</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column workbench sheet, same family as the power/relay/footswitch/DI pages — decision, board map, wire list, tester checks, power-on checks */
+:root {
+  --bg: #f3f2ee; --paper: #ffffff; --fg: #1d2126; --muted: #5a616b; --line: #d9d6cf; --accent: #0f7c6c;
+  --part: #e9e6df; --part-edge: #8d939b; --board: #e7dcc0; --hole: #9a8c6a;
+  --sig: #1d4ed8; --in: #0e9f6e; --ing: #b45309; --gnd: #262626; --ctl: #7c3aed; --pwr: #c62828;
+  --ok: #2e7d32; --warn: #a15c00; --bad: #c62828;
+  --f-head: "M PLUS 1p", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #16181b; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840; --accent: #3cc2ab;
+  --part: #2b2e33; --part-edge: #6b7280; --board: #3a3427; --hole: #8a7d5e;
+  --sig: #60a5fa; --in: #34d399; --ing: #fbbf24; --gnd: #d4d4d4; --ctl: #c4b5fd; --pwr: #ff7a72;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #16181b; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840; --accent: #3cc2ab;
+  --part: #2b2e33; --part-edge: #6b7280; --board: #3a3427; --hole: #8a7d5e;
+  --sig: #60a5fa; --in: #34d399; --ing: #fbbf24; --gnd: #d4d4d4; --ctl: #c4b5fd; --pwr: #ff7a72;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-head); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; display: grid; gap: 24px; }
+h1 { font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+h2 { font-weight: 800; font-size: 1.2rem; margin: 0 0 10px; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+p { margin: 0 0 8px; }
+.note { font-size: .9rem; color: var(--muted); margin: 10px 0 0; }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 680px; width: 100%; height: auto; }
+.diagram text { font-family: var(--f-head); font-size: 13px; fill: var(--fg); }
+.diagram .mono { font-family: var(--f-mono); font-weight: 700; }
+.diagram .small { font-size: 11px; fill: var(--muted); }
+.diagram .lbl { font-size: 12px; font-weight: 700; }
+.diagram .lbl.b { font-size: 14px; }
+.diagram .pin { font-family: var(--f-mono); font-size: 11px; font-weight: 700; fill: var(--muted); }
+.diagram .part { fill: var(--part); stroke: var(--part-edge); stroke-width: 1.5; }
+.diagram .w { stroke-width: 4; stroke-linecap: round; fill: none; }
+.diagram .pad { fill: var(--paper); stroke-width: 3; }
+.w.sig, .pad.sig { stroke: var(--sig); } .w.in, .pad.in { stroke: var(--in); } .w.ing, .pad.ing { stroke: var(--ing); }
+.w.gnd, .pad.gnd { stroke: var(--gnd); } .w.ctl, .pad.ctl { stroke: var(--ctl); } .w.pwr, .pad.pwr { stroke: var(--pwr); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .88rem; margin-top: 10px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 22px; height: 4px; border-radius: 2px; display: inline-block; }
+.tablewrap { overflow-x: auto; margin-top: 12px; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+td.pin { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.case { border-left: 4px solid var(--line); padding: 8px 12px; border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--paper) 92%, var(--fg)); margin-top: 10px; }
+.case.ok { border-color: var(--ok); } .case.bad { border-color: var(--bad); } .case.warn { border-color: var(--warn); }
+.case b { display: block; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.mode { border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width: 0; }
+.mode b { display: block; margin-bottom: 4px; }
+.c-sig { color: var(--sig); font-weight: 700; } .c-in { color: var(--in); font-weight: 700; } .c-ing { color: var(--ing); font-weight: 700; }
+.c-gnd { font-weight: 700; } .c-ctl { color: var(--ctl); font-weight: 700; } .c-pwr { color: var(--pwr); font-weight: 700; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+ol.steps li { cursor: pointer; padding: 6px 8px 6px 4px; border-radius: 6px; }
+ol.steps li.done { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--ok); background: color-mix(in srgb, var(--paper) 85%, var(--ok)); }
+ol.steps li.done::marker { color: var(--ok); }
+.progress { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; font-weight: 800; color: var(--accent); }
+</style>
+
+<main>
+  <div class="progress" id="progress"></div>
+  <header>
+    <h1>ペダルの音の基板(手順 F)</h1>
+    <p class="lead">ブレッドボードの音の部分(リレー・ジャックの線・リレーを動かすトランジスタ)を、ユニバーサル基板に移します。
+      10/21 に一番静かだった(-70 dBFS)つなぎ方を、そのまま基板に写します。部品は全部いま使っているもので、買い足しはありません。</p>
+  </header>
+
+  <section>
+    <h2>決めたこと:電源は公式 5A の USB-C だけ</h2>
+    <div class="two">
+      <div class="mode"><b>やめるもの</b>手順 A の 12V アダプター・降圧(Waveshare)・12V の入口の保護。10/18 にコンデンサーが破裂した部分が丸ごと要らなくなります。</div>
+      <div class="mode"><b>電気の流れ</b>公式 5A 電源 → ラズパイの USB-C。UR12 と Pico はラズパイの USB から(10/21 に測って EXT5V 5.06V・電圧低下の記録なし)。UR12 の POWER SOURCE は USB 側。</div>
+    </div>
+    <p class="note">この基板には電解コンデンサーがありません。LED リングの 1000µF はリングの側のままで、この基板には来ません。</p>
+  </section>
+
+  <section>
+    <h2>大事なきまり:GND は 2 つの島に分ける</h2>
+    <div class="two">
+      <div class="mode"><b class="c-ing">入口の GND(島)</b>IN ジャックのスリーブと、HI-Z ケーブルの網線の 2 本だけ。ほかの何ともつながない。UR12 の中で GND につながります。</div>
+      <div class="mode"><b class="c-gnd">制御の GND(列)</b>Pico の GND、トランジスタの E、OUT ジャックのスリーブ、LINE OUT の網線。10/21 は OUT 側をこちらにしたほうが静かでした。</div>
+    </div>
+    <p class="note">ブレッドボードでは、入口の GND が Pico・LED・ラズパイと同じ列にあったせいで、ラズパイ → UR12 → 網線 → 列 → Pico → ラズパイ の輪ができて -50 dBFS になっていました。分けたら -70 dBFS。</p>
+    <div class="case warn"><b>11/1 の切り分け:残りの「ジーー」は入口の配線が拾っている</b>ベースの音量 0・エフェクトを通す状態・UR12 のヘッドホンで、小さくジーー。ベースを UR12 の HI-Z に<b>直接</b>挿すと静か → 雑音は「入力ジャック → リレー → UR12 の HI-Z」の線で拾っていて、NAM の歪みが大きくしている。基板では次の 3 つを守る:<br>① 入力ジャック〜基板、基板〜UR12 の線をできるだけ短く ② 基板(L15/L17)〜UR12 の HI-Z は<b>シールド線</b>(ギターケーブルを短く切ったものでよい)、網線は入口の GND の島(L17/L18)だけに ③ その線をラズパイ・USB・LED リングの線から離して通す。<br>(BYPASS 中やケーブルを抜いたときのジーーは、UR12 の入力が浮くため。BYPASS の音は OUT ジャックの先で聞くもので、故障ではない。)</div>
+  </section>
+
+  <section>
+    <h2>穴の配置図(部品の面から見た図)</h2>
+    <div class="diagram"><svg viewBox="0 0 790 488" role="img" aria-label="基板の穴の配置図(部品の面から見た図)">
+<rect x="48" y="28" width="690" height="418" rx="8" fill="var(--board)" stroke="var(--part-edge)"/>
+<text x="70" y="22" text-anchor="middle" class="small mono">1</text>
+<text x="104" y="22" text-anchor="middle" class="small mono">2</text>
+<text x="138" y="22" text-anchor="middle" class="small mono">3</text>
+<text x="172" y="22" text-anchor="middle" class="small mono">4</text>
+<text x="206" y="22" text-anchor="middle" class="small mono">5</text>
+<text x="240" y="22" text-anchor="middle" class="small mono">6</text>
+<text x="274" y="22" text-anchor="middle" class="small mono">7</text>
+<text x="308" y="22" text-anchor="middle" class="small mono">8</text>
+<text x="342" y="22" text-anchor="middle" class="small mono">9</text>
+<text x="376" y="22" text-anchor="middle" class="small mono">10</text>
+<text x="410" y="22" text-anchor="middle" class="small mono">11</text>
+<text x="444" y="22" text-anchor="middle" class="small mono">12</text>
+<text x="478" y="22" text-anchor="middle" class="small mono">13</text>
+<text x="512" y="22" text-anchor="middle" class="small mono">14</text>
+<text x="546" y="22" text-anchor="middle" class="small mono">15</text>
+<text x="580" y="22" text-anchor="middle" class="small mono">16</text>
+<text x="614" y="22" text-anchor="middle" class="small mono">17</text>
+<text x="648" y="22" text-anchor="middle" class="small mono">18</text>
+<text x="682" y="22" text-anchor="middle" class="small mono">19</text>
+<text x="716" y="22" text-anchor="middle" class="small mono">20</text>
+<text x="34" y="54" text-anchor="middle" class="small mono">A</text>
+<circle cx="70" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="50" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="50" r="3.2" fill="var(--hole)"/>
+<text x="34" y="88" text-anchor="middle" class="small mono">B</text>
+<circle cx="70" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="84" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="84" r="3.2" fill="var(--hole)"/>
+<text x="34" y="122" text-anchor="middle" class="small mono">C</text>
+<circle cx="70" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="118" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="118" r="3.2" fill="var(--hole)"/>
+<text x="34" y="156" text-anchor="middle" class="small mono">D</text>
+<circle cx="70" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="152" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="152" r="3.2" fill="var(--hole)"/>
+<text x="34" y="190" text-anchor="middle" class="small mono">E</text>
+<circle cx="70" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="186" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="186" r="3.2" fill="var(--hole)"/>
+<text x="34" y="224" text-anchor="middle" class="small mono">F</text>
+<circle cx="70" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="220" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="220" r="3.2" fill="var(--hole)"/>
+<text x="34" y="258" text-anchor="middle" class="small mono">G</text>
+<circle cx="70" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="254" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="254" r="3.2" fill="var(--hole)"/>
+<text x="34" y="292" text-anchor="middle" class="small mono">H</text>
+<circle cx="70" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="288" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="288" r="3.2" fill="var(--hole)"/>
+<text x="34" y="326" text-anchor="middle" class="small mono">I</text>
+<circle cx="70" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="322" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="322" r="3.2" fill="var(--hole)"/>
+<text x="34" y="360" text-anchor="middle" class="small mono">J</text>
+<circle cx="70" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="356" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="356" r="3.2" fill="var(--hole)"/>
+<text x="34" y="394" text-anchor="middle" class="small mono">K</text>
+<circle cx="70" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="390" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="390" r="3.2" fill="var(--hole)"/>
+<text x="34" y="428" text-anchor="middle" class="small mono">L</text>
+<circle cx="70" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="104" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="138" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="172" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="206" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="240" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="274" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="308" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="342" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="376" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="410" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="444" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="478" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="512" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="546" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="580" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="614" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="648" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="682" cy="424" r="3.2" fill="var(--hole)"/>
+<circle cx="716" cy="424" r="3.2" fill="var(--hole)"/>
+<line x1="70" y1="322" x2="682" y2="322" class="w gnd"/>
+<line x1="308" y1="84" x2="308" y2="322" class="w gnd" stroke-dasharray="7 5"/>
+<line x1="70" y1="84" x2="104" y2="84" class="w ctl"/>
+<line x1="206" y1="84" x2="240" y2="84" class="w ctl"/>
+<line x1="274" y1="84" x2="410" y2="152" class="w ctl" stroke-dasharray="7 5"/>
+<line x1="376" y1="152" x2="410" y2="152" class="w ctl"/>
+<line x1="376" y1="254" x2="410" y2="254" class="w pwr"/>
+<line x1="70" y1="152" x2="342" y2="254" class="w pwr" stroke-dasharray="7 5"/>
+<line x1="342" y1="254" x2="376" y2="254" class="w pwr"/>
+<line x1="444" y1="152" x2="444" y2="254" class="w sig" stroke-dasharray="7 5"/>
+<line x1="478" y1="50" x2="478" y2="152" class="w sig" stroke-dasharray="7 5"/>
+<line x1="546" y1="50" x2="512" y2="152" class="w sig" stroke-dasharray="7 5"/>
+<line x1="478" y1="424" x2="478" y2="254" class="w in" stroke-dasharray="7 5"/>
+<line x1="546" y1="424" x2="512" y2="254" class="w in" stroke-dasharray="7 5"/>
+<line x1="614" y1="424" x2="648" y2="424" class="w ing"/>
+<rect x="396" y="138" width="164" height="130" rx="4" class="part"/>
+<circle cx="404" cy="203.0" r="4" fill="var(--fg)"/>
+<text x="478.0" y="208.0" text-anchor="middle" class="lbl b">TQ2-5V</text>
+<text x="410" y="174" text-anchor="middle" class="pin">10</text>
+<text x="444" y="174" text-anchor="middle" class="pin">9</text>
+<text x="478" y="174" text-anchor="middle" class="pin">8</text>
+<text x="512" y="174" text-anchor="middle" class="pin">7</text>
+<text x="546" y="174" text-anchor="middle" class="pin">6</text>
+<text x="410" y="242" text-anchor="middle" class="pin">1</text>
+<text x="444" y="242" text-anchor="middle" class="pin">2</text>
+<text x="478" y="242" text-anchor="middle" class="pin">3</text>
+<text x="512" y="242" text-anchor="middle" class="pin">4</text>
+<text x="546" y="242" text-anchor="middle" class="pin">5</text>
+<rect x="108" y="77" width="94" height="14" rx="6" class="part res"/><text x="155.0" y="72" text-anchor="middle" class="lbl">R1 1kΩ</text>
+<path d="M230 93 L318 93 L318 81 Q274.0 62 230 81 Z" class="part"/>
+<text x="240" y="108" text-anchor="middle" class="pin">B</text>
+<text x="274" y="108" text-anchor="middle" class="pin">C</text>
+<text x="308" y="108" text-anchor="middle" class="pin">E</text>
+<text x="274" y="58" text-anchor="middle" class="lbl">Q1 2SC1815</text>
+<rect x="369" y="157" width="14" height="92" rx="5" class="part dio"/><rect x="369" y="240" width="14" height="5" fill="var(--fg)"/>
+<text x="364" y="207.0" text-anchor="end" class="lbl">D1 1N4148</text>
+<circle cx="70" cy="84" r="8" class="pad ctl"/>
+<text x="56" y="88" text-anchor="end" class="lbl">Pico GP9</text>
+<circle cx="70" cy="152" r="8" class="pad pwr"/>
+<text x="56" y="156" text-anchor="end" class="lbl">Pico VBUS(+5V)</text>
+<circle cx="70" cy="322" r="8" class="pad gnd"/>
+<text x="56" y="326" text-anchor="end" class="lbl">Pico GND</text>
+<circle cx="478" cy="50" r="8" class="pad sig"/>
+<text x="478" y="36" text-anchor="middle" class="lbl">OUT ジャック 先</text>
+<circle cx="546" cy="50" r="8" class="pad sig"/>
+<text x="546" y="36" text-anchor="middle" class="lbl">LINE OUT L 芯</text>
+<circle cx="648" cy="322" r="8" class="pad gnd"/>
+<text x="648" y="346" text-anchor="middle" class="lbl">OUT スリーブ</text>
+<circle cx="682" cy="322" r="8" class="pad gnd"/>
+<text x="696" y="326" text-anchor="start" class="lbl">LINE OUT 網線</text>
+<circle cx="478" cy="424" r="8" class="pad in"/>
+<text x="478" y="448" text-anchor="middle" class="lbl">IN 先</text>
+<circle cx="546" cy="424" r="8" class="pad in"/>
+<text x="546" y="448" text-anchor="middle" class="lbl">HI-Z 芯</text>
+<circle cx="614" cy="424" r="8" class="pad ing"/>
+<text x="628" y="428" text-anchor="start" class="lbl"></text>
+<circle cx="648" cy="424" r="8" class="pad ing"/>
+<text x="662" y="428" text-anchor="start" class="lbl">IN スリーブ + HI-Z 網線</text>
+</svg>
+</div>
+    <div class="legend">
+      <span><i style="background:var(--sig)"></i>出口の音</span>
+      <span><i style="background:var(--in)"></i>入口の音</span>
+      <span><i style="background:var(--ing)"></i>入口の GND(島)</span>
+      <span><i style="background:var(--gnd)"></i>制御の GND</span>
+      <span><i style="background:var(--ctl)"></i>リレーを動かす線</span>
+      <span><i style="background:var(--pwr)"></i>+5V</span>
+    </div>
+    <p class="note">実線 = 表ではんだを盛ってつなぐ(となりの穴どうし)/点線 = 裏に線を通す。○ = ケーブルや Pico からの線をはんだ付けする穴。列 1〜20・行 A〜L は数えやすくするための番号です。</p>
+    <div class="case warn"><b>はんだ付けの前に、リレーを置いて確かめる</b>TQ2 はブレッドボードで溝をまたいで挿さっていた向きのまま(上から見て印を左)。上の列(D 行)が左から 10・9・8・7・6、下の列(G 行)が 1・2・3・4・5。上下の列の間に穴が 2 つ空くはずです。足が穴に合わなければ、そこで止めて写真を送ってください。</div>
+  </section>
+
+  <section>
+    <h2>部品と線を 1 本ずつ</h2>
+    <ol class="steps">
+      <li><b>リレー TQ2-5V</b> を D11〜D15 / G11〜G15 に置いて、まず四隅の 4 本だけはんだ付け(向きの直しがきくように)。合っていたら残りも。5 番・6 番は何もつながない。</li>
+      <li><b>ダイオード 1N4148</b> を D10〜G10 に縦に。<b>帯を G 側(下、1 番の側)</b>。D10–D11、G10–G11 をはんだでつなぐ。</li>
+      <li><b>トランジスタ 2SC1815</b> を B6・B7・B8 に。<b>平らな面を上(奥)に向ける</b>と、左から B・C・E になります(ブレッドボードのときと逆向き。足の名前で合わせてください)。</li>
+      <li><b>抵抗 1kΩ</b> を B2〜B5 に横に。B5–B6(ベース)をはんだでつなぐ。</li>
+      <li><span class="c-ctl">裏の線</span>:B7(C)→ D11(リレー 10 番)。</li>
+      <li><span class="c-gnd">制御の GND の列</span>:すずめっき線を I1〜I19 に。裏で B8(E)→ I8。</li>
+      <li><span class="c-pwr">+5V</span>:裏で D1 → G9、G9–G10 をはんだでつなぐ(リレー 1 番へ)。</li>
+      <li><span class="c-sig">素通りの線</span>:裏で D12(9 番)→ G12(2 番)。電気が来ていないときに IN → OUT を直結する線です。</li>
+      <li>音の線の行き先:<span class="c-sig">A13 → D13(8 番)</span>、<span class="c-sig">A15 → D14(7 番)</span>、<span class="c-in">L13 → G13(3 番)</span>、<span class="c-in">L15 → G14(4 番)</span>。</li>
+      <li><span class="c-ing">入口の GND の島</span>:L17–L18 をはんだでつなぐだけ。ほかとはつながない。</li>
+    </ol>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>穴</th><th>はんだ付けする線</th><th>もう片方</th></tr></thead>
+        <tbody>
+          <tr><td class="pin">B1</td><td class="c-ctl">Pico GP9</td><td>今ブレッドボードで抵抗に行っている線</td></tr>
+          <tr><td class="pin">D1</td><td class="c-pwr">Pico VBUS(+5V)</td><td>今リレー 1 番に行っている線</td></tr>
+          <tr><td class="pin">I1</td><td class="c-gnd">Pico GND</td><td>Pico の GND ピン</td></tr>
+          <tr><td class="pin">A13</td><td class="c-sig">OUT ジャックの先(Tip)</td><td></td></tr>
+          <tr><td class="pin">A15</td><td class="c-sig">UR12 LINE OUT L の芯</td><td>RCA ケーブル</td></tr>
+          <tr><td class="pin">I18</td><td class="c-gnd">OUT ジャックのスリーブ</td><td></td></tr>
+          <tr><td class="pin">I19</td><td class="c-gnd">LINE OUT ケーブルの網線</td><td></td></tr>
+          <tr><td class="pin">L13</td><td class="c-in">IN ジャックの先(Tip)</td><td></td></tr>
+          <tr><td class="pin">L15</td><td class="c-in">HI-Z ケーブルの芯</td><td>UR12 の HI-Z へ</td></tr>
+          <tr><td class="pin">L17 / L18</td><td class="c-ing">IN ジャックのスリーブ / HI-Z ケーブルの網線</td><td>この 2 本だけ</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>電気を入れる前にテスターで(導通のピー)</h2>
+    <p>基板だけの状態で(ジャック・ケーブル・Pico をつなぐ前)。</p>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>当てるところ</th><th>正しい結果</th><th>違ったら</th></tr></thead>
+        <tbody>
+          <tr><td class="pin">L13 ↔ A13</td><td>鳴る(素通りの道 3→2→9→8)</td><td>D12–G12 の裏の線、リレーの向き</td></tr>
+          <tr><td class="pin">L13 ↔ L15</td><td>鳴らない</td><td>3 番と 4 番の間にはんだが流れていないか</td></tr>
+          <tr><td class="pin">A13 ↔ A15</td><td>鳴らない</td><td>8 番と 7 番の間</td></tr>
+          <tr><td class="pin">L18 ↔ I1</td><td>鳴らない(島が分かれている)</td><td>入口の GND がどこかに触れている</td></tr>
+          <tr><td class="pin">D1 ↔ I1</td><td>鳴らない</td><td>+5V と GND がつながっている。電気を入れない</td></tr>
+          <tr><td class="pin">B8 ↔ I1</td><td>鳴る</td><td>E → I8 の線</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>つないで鳴らす</h2>
+    <ol class="steps">
+      <li>表のとおりにジャック・ケーブル・Pico の線をはんだ付け。ブレッドボードの音の部分(リレー・トランジスタ)は外す。</li>
+      <li><b>電源を入れる前</b>に、ベース → IN、OUT → アンプで音が通るか(電気なし = 素通り)。</li>
+      <li>電源を入れて、BYPASS OFF でリレーがカチッ。エフェクトがかかる。BYPASS ON で素の音。</li>
+      <li>静かさを測る:ベースのボリューム 0 で <code>python3 noise.py 10 &lt;チェーンの番号&gt;</code>(10/21 と同じ道具)。</li>
+      <li>弾いている途中で電源を抜く → 音が素通りで続く。もう一度挿して普通に起動する。</li>
+    </ol>
+    <div class="case ok"><b>うまくいったとき</b>-70 dBFS 前後。ブレッドボードの -57〜-70 のばらつきがなくなっていれば成功。</div>
+    <div class="case bad"><b>電源を入れて変なとき</b>(熱い・焦げくさい・ラズパイが落ちる)すぐ抜いて、熱い部品を指で探してから写真を送ってください。原因を探すのはそのあと。</div>
+  </section>
+
+  <section>
+    <h2>Pico 基板から出す線の長さ(箱に入れたときのイメージ)</h2>
+    <p>箱はまだ決まっていないので、10/14 の内部配置の案(幅 330 × 奥行き 120mm、奥 65 / 手前 45mm のくさび形、スイッチ 5 つを 65mm 間隔で横一列)で見積もりました。
+      Pico 基板は床の真ん中、スイッチ 2 の奥に置く案です。</p>
+    <div class="diagram">
+      <svg viewBox="0 0 760 330" role="img" aria-label="箱を上から見た図。Pico 基板から各スイッチ・つまみ・音の基板までの線の長さ">
+        <!-- 1mm = 2px、箱の左上が (40,20) -->
+        <rect x="40" y="20" width="660" height="240" fill="none" stroke="var(--part-edge)" stroke-width="2" rx="6" />
+        <text x="44" y="14" class="small">奥(背面:ジャック・USB-C)</text>
+        <text x="44" y="278" class="small">手前(足元)</text>
+        <text x="600" y="14" class="small mono">330 × 120mm</text>
+        <!-- 中の物 -->
+        <rect x="124" y="72" width="170" height="112" class="part" /><text x="134" y="92" class="lbl">ラズパイ</text>
+        <rect x="350" y="26" width="290" height="90" class="part" opacity=".55" /><text x="360" y="46" class="lbl">UR12(重ねて)</text>
+        <rect x="610" y="40" width="80" height="100" class="part" /><text x="616" y="60" class="lbl">音の基板</text>
+        <rect x="300" y="128" width="140" height="80" fill="var(--board)" stroke="var(--hole)" stroke-width="2" rx="3" />
+        <text x="312" y="152" class="lbl b">Pico 基板</text><text x="312" y="170" class="small">床に置く</text>
+        <!-- 天板の物(点線) -->
+        <rect x="160" y="44" width="150" height="20" fill="none" stroke="var(--muted)" stroke-dasharray="5 4" />
+        <text x="166" y="58" class="small">天板: 画面(ラズパイへ)</text>
+        <circle cx="336" cy="98" r="12" fill="none" stroke="var(--ctl)" stroke-width="2.5" stroke-dasharray="4 3" />
+        <text x="352" y="102" class="small">つまみ・ボタン</text>
+        <!-- スイッチ列 -->
+        <g class="mono">
+          <circle cx="110" cy="232" r="14" class="part" /><text x="88" y="300" class="lbl">TUNER</text>
+          <circle cx="240" cy="232" r="14" class="part" /><text x="236" y="300" class="lbl">1</text>
+          <circle cx="370" cy="232" r="14" class="part" /><text x="366" y="300" class="lbl">2</text>
+          <circle cx="500" cy="232" r="14" class="part" /><text x="496" y="300" class="lbl">3</text>
+          <circle cx="630" cy="232" r="14" class="part" /><text x="604" y="300" class="lbl">BYPASS</text>
+        </g>
+        <!-- 線 -->
+        <path d="M300 200 L110 218" class="w ctl" /><text x="160" y="198" class="lbl mono">25cm</text>
+        <path d="M320 208 L240 218" class="w ctl" /><text x="246" y="222" class="lbl mono">20</text>
+        <path d="M370 208 L370 218" class="w ctl" /><text x="378" y="222" class="lbl mono">20</text>
+        <path d="M420 208 L500 218" class="w ctl" /><text x="470" y="222" class="lbl mono">20</text>
+        <path d="M440 200 L630 218" class="w ctl" /><text x="548" y="198" class="lbl mono">25cm</text>
+        <path d="M340 128 L336 110" class="w ctl" /><text x="300" y="124" class="lbl mono">20</text>
+        <path d="M440 140 L610 120" class="w ctl" /><text x="500" y="124" class="lbl mono">20(GP9)</text>
+        <path d="M300 150 L294 150" class="w pwr" /><text x="232" y="206" class="small">USB(今のケーブル)</text>
+      </svg>
+    </div>
+    <div class="tablewrap">
+      <table>
+        <tr><th>行き先</th><th>本数</th><th>切る長さ</th><th>メモ</th></tr>
+        <tr><td>TUNER / BYPASS(3PDT・LED)</td><td>スイッチ 2 本 + LED 2 本 ずつ</td><td class="pin">25cm</td><td>箱の端まで行くので一番長い</td></tr>
+        <tr><td>フットスイッチ 1 / 2 / 3</td><td>2 本ずつ</td><td class="pin">20cm</td><td>2 本をねじって 1 組に</td></tr>
+        <tr><td>LED リング 1 の入口</td><td>3 本(5V・データ・GND)</td><td class="pin">20cm</td><td>2→3 はリングに付いているコネクターの線のまま</td></tr>
+        <tr><td>つまみ・ボタン 2 個</td><td>つまみ 3 本 + 押す 1 本 + ボタン 2 本 + GND</td><td class="pin">20cm</td><td>天板の画面の近く</td></tr>
+        <tr><td>リレーを動かす線(GP9 → 音の基板)</td><td>1 本</td><td class="pin">20cm</td><td>床を通す。IN ジャックと HI-Z の線(島)からは離して、奥の壁ぞいに</td></tr>
+        <tr><td>ラズパイ → Pico</td><td>USB</td><td class="pin">今のまま</td><td>手持ちの短い A-microB</td></tr>
+      </table>
+    </div>
+    <div class="case warn"><b>決まり:長めに付けて、箱に入れるときに切りそろえる</b>
+      いまは Pico 基板の側だけをはんだ付けして、表の長さで切っておけば足ります。反対側は、ブレッドボードで試す間はそのまま挿して使えます。
+      スイッチは天板(フタ)に付くので、フタを開けて裏返せるだけの余り(約 5cm)を、長さに入れてあります。</div>
+    <p class="note">線の端にマスキングテープで「1」「T」「B」などと書いておくと、箱に入れるときに迷いません。
+      Pico 基板の上では、スイッチの線は手前の辺、つまみの線は奥の辺、GP9 は右の辺から出すと、線が基板の上を横切りません。</p>
+  </section>
+
+  <p class="note">手順の行を押すと「済み」になります(このブラウザに覚えます。もう一度押すと戻ります)。</p>
+  <p class="note">DI(XLR)はこの基板に入れていません。大学のミキサーで鳴るのを確かめてから、同じ基板の空いているところ(右側)に移します。</p>
+</main>
+<script>
+(function () {
+  var items = Array.prototype.slice.call(document.querySelectorAll('ol.steps li'));
+  var key = 'stepF-done';
+  var done = {};
+  try { done = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  function show() {
+    var n = items.filter(function (li) { return li.classList.contains('done'); }).length;
+    document.getElementById('progress').textContent = '進み具合: ' + n + ' / ' + items.length;
+  }
+  items.forEach(function (li, i) {
+    if (done[i]) li.classList.add('done');
+    li.addEventListener('click', function () {
+      li.classList.toggle('done');
+      done[i] = li.classList.contains('done');
+      try { localStorage.setItem(key, JSON.stringify(done)); } catch (e) {}
+      show();
+    });
+  });
+  show();
+})();
+</script>

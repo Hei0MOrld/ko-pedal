@@ -1,0 +1,226 @@
+<title>琥ペダル 操作シミュレーター</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: 上に本体と増設箱(押せる)、下に「いま何が起きたか」と音の流れ。pedal_final.html と同じ木の箱の世界 */
+:root{
+  --bg:#ecebe6; --paper:#f7f6f2; --ink:#1f1d1a; --muted:#67625a; --line:#cfcac0;
+  --wood-a:#3a2a1f; --wood-b:#5a4130; --edge:#1c140e; --silk:#e9dcc6;
+  --led-amber:#ffb020; --led-blue:#2fb5ff; --led-red:#ff4a3d; --led-white:#f4f4f0; --led-off:#4a4038;
+  --screen:#0f1412; --screen-fg:#8df0c0; --screen-dim:#3f6b57; --accent:#b4531f;
+  --display:"Shippori Mincho B1","Zen Kaku Gothic New",serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161412; --paper:#1e1b18; --ink:#ebe7df; --muted:#a39d92; --line:#38332d; --accent:#ec8a4f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161412; --paper:#1e1b18; --ink:#ebe7df; --muted:#a39d92; --line:#38332d; --accent:#ec8a4f; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.7}
+.wrap{max-width:920px;margin:0 auto;padding-inline:16px;padding-block:32px 64px;display:grid;gap:32px}
+header{display:grid;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,42px);line-height:1.15;margin:0;text-wrap:balance}
+h2{font-size:18px;margin:0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lede{color:var(--muted)}
+
+/* 本体 */
+.rig{display:grid;gap:18px}
+.case{background:linear-gradient(160deg,var(--wood-b),var(--wood-a));border:3px solid var(--edge);border-radius:14px;padding:18px 16px 22px;display:grid;gap:18px;box-shadow:0 6px 0 var(--edge)}
+.case-top{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;color:var(--silk);font-size:34px;line-height:1}
+.brand small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.12em;font-weight:600;margin-top:4px}
+.lcd{flex:1;min-width:0;background:var(--screen);border:2px solid #000;border-radius:6px;padding:10px 12px;font-family:var(--mono);color:var(--screen-fg);min-height:92px;display:grid;gap:4px;align-content:start}
+.lcd .big{font-size:22px;font-weight:600;line-height:1.2}
+.lcd .row{font-size:13px;display:flex;gap:14px;flex-wrap:wrap}
+.lcd .off{color:var(--screen-dim)}
+.lcd .tuner{font-size:20px;letter-spacing:.05em}
+.switches{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.sw{-webkit-touch-callout:none;user-select:none;touch-action:manipulation;display:grid;justify-items:center;gap:8px;background:none;border:0;padding:0;cursor:pointer;color:var(--silk);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em}
+.ring{width:clamp(44px,11vw,64px);aspect-ratio:1;border-radius:50%;border:5px solid var(--led-off);display:grid;place-items:center;transition:border-color .15s, box-shadow .15s;max-width:100%}
+.cap{width:62%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#eceeec,#9a9d9b);border:2px solid #555;transition:transform .08s}
+.sw:active .cap{transform:scale(.92)}
+.sw:focus-visible .ring{outline:3px solid var(--accent);outline-offset:3px}
+.sw .sub{font-size:10px;color:#cdbfa8;font-weight:500;letter-spacing:0;min-height:1.4em;text-align:center}
+.ring.amber{border-color:var(--led-amber);box-shadow:0 0 14px var(--led-amber)}
+.ring.blue{border-color:var(--led-blue);box-shadow:0 0 14px var(--led-blue)}
+.ring.red{border-color:var(--led-red);box-shadow:0 0 14px var(--led-red)}
+.sw.holding .ring{box-shadow:0 0 0 4px var(--led-amber)}
+.ring.white{border-color:var(--led-white);box-shadow:0 0 14px var(--led-white)}
+
+.boxrow{display:flex;gap:16px;flex-wrap:wrap;align-items:stretch}
+.xbox{background:linear-gradient(160deg,var(--wood-b),var(--wood-a));border:2.5px solid var(--edge);border-radius:12px;padding:12px 14px 16px;display:grid;gap:10px;box-shadow:0 5px 0 var(--edge);flex:1 1 260px;max-width:360px}
+.xbox .tag{font-family:var(--mono);font-size:11px;color:var(--silk);letter-spacing:.08em}
+.xbox .switches{grid-template-columns:repeat(3,1fr)}
+.cable{font-family:var(--mono);font-size:12px;color:var(--muted);align-self:center}
+
+/* 説明 */
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:16px;display:grid;gap:14px;min-width:0}
+.what{font-size:16px;font-weight:700}
+.why{color:var(--muted)}
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:var(--mono);font-size:13px}
+.node{padding:4px 10px;border-radius:4px;border:1.5px solid var(--ink);background:var(--paper)}
+.node.fx{border-color:var(--accent);color:var(--accent);font-weight:600}
+.node.skip{border-style:dashed;opacity:.45;text-decoration:line-through}
+.node.mute{border-color:var(--led-red);color:var(--led-red)}
+.arrow{color:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+.try{display:grid;gap:6px;margin:0;padding-left:1.3em;max-width:65ch}
+.reset{justify-self:start;font-family:var(--body);font-size:14px;padding:6px 14px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer}
+.reset:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.note{font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion: reduce){.ring,.cap{transition:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">BASS PEDAL / 操作のイメージ 2026-10-03</div>
+    <h1>押して試す 琥ペダル</h1>
+    <p class="lede">スイッチ1つが、エフェクター1台。本体に3台、増設箱を足すたびに3台ずつ増えます。どのスイッチにどのエフェクターを割り当てるかは自由です。本体の 1 / 2 / 3 は<b>長押し</b>(0.6秒)すると、覚えておいた ON / OFF の組み合わせに切り替わります(最初は3つとも空き)。両端の TUNER と BYPASS は役割が固定です。スイッチを押すと、LED と画面と音の流れが変わります。</p>
+  </header>
+
+  <section class="rig" aria-label="ペダル">
+    <div class="case">
+      <div class="case-top">
+        <div class="brand">琥<small>KO BASS RIG</small></div>
+        <div class="lcd" id="lcd" aria-live="polite"></div>
+      </div>
+      <div class="switches" id="main"></div>
+    </div>
+    <div class="boxrow">
+      <span class="cable">└ USB ─</span>
+      <div class="xbox">
+        <div class="tag">増設箱 ID 02</div>
+        <div class="switches" id="ext1"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-label="いま起きたこと">
+    <div class="what" id="what"></div>
+    <div class="why" id="why"></div>
+    <div class="flow" id="flow"></div>
+    <div class="legend">
+            <span><span class="dot" style="background:var(--led-blue)"></span>青 = ON のエフェクト</span>
+      <span><span class="dot" style="background:var(--led-amber)"></span>琥珀の外枠 = 長押し中</span>
+      <span><span class="dot" style="background:var(--led-off)"></span>消灯 = OFF / 割り当てなし</span>
+      <span><span class="dot" style="background:var(--led-red)"></span>赤 = TUNER</span>
+      <span><span class="dot" style="background:var(--led-white)"></span>白 = BYPASS</span>
+    </div>
+    <div class="legend">
+      <button class="reset save" data-n="1" type="button">今の ON / OFF を長押し1に覚える</button>
+      <button class="reset save" data-n="2" type="button">長押し2に覚える</button>
+      <button class="reset save" data-n="3" type="button">長押し3に覚える</button>
+      <button class="reset" id="reset" type="button">最初の状態に戻す</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>試してみる順番</h2>
+    <ol class="try">
+      <li>スイッチを短く押して、好きなエフェクトを ON / OFF する(例: SansAmp と B7K だけ ON)</li>
+      <li>下の「今の ON / OFF を長押し1に覚える」を押す</li>
+      <li>ほかのスイッチをいろいろ押して音を変える → 画面に「*」が付く</li>
+      <li>本体の <b>1 を長押し</b> → 覚えた組み合わせに一発で戻る。<b>1 を短く押す</b>と、1番のエフェクトだけ ON / OFF</li>
+      <li>何も覚えていない <b>2 / 3 を長押し</b> → 「まだ覚えていない」と出るだけ</li>
+      <li><b>TUNER</b> / <b>BYPASS</b> → チューナー / リレーで直結(ラズパイが固まっても効く)</li>
+    </ol>
+    <p class="note">スイッチの中身はいつも同じなので、足で覚えられる。音の順番(コンプ → Noble → Butler → SansAmp → B7K → オクターバー)はスマホで決めて、スイッチの場所とは関係ない。本体の 1 / 2 / 3 だけは、長押しと見分けるため ON / OFF が足を離したときに切り替わる(0.6秒以上で長押し)。増設箱・TUNER・BYPASS は踏んだ瞬間に切り替わる。組み合わせの中身はスマホで覚えさせる。スイッチに入れたエフェクターは例(Noble / Butler / SansAmp / B7K は 10/3 に TONE3000 で使った音、コンプとオクターバーは仮)。割り当てはスマホで自由に変えられる。</p>
+  </section>
+</div>
+
+<script>
+const FX = [ // 音の順番(スマホで決める)。box 0 = 本体、1 = 増設箱。n = 何番目のスイッチか
+  {id:"comp",  label:"コンプ",      box:1, n:2, nam:false},
+  {id:"noble", label:"Noble",       box:0, n:1, nam:true},
+  {id:"butler",label:"Bass Butler", box:0, n:2, nam:true},
+  {id:"sans",  label:"SansAmp",     box:0, n:3, nam:true},
+  {id:"b7k",   label:"B7K",         box:1, n:1, nam:true},
+  {id:"oct",   label:"オクターバー", box:1, n:3, nam:false}
+];
+let SCENES;
+let st, msg={what:"",why:""};
+function say(w,y){msg={what:w,why:y}}
+function init(){
+  SCENES={1:{name:"(空き)",on:null},2:{name:"(空き)",on:null},3:{name:"(空き)",on:null}};
+  st={mode:"play", scene:0, on:new Set(["noble","butler"])};
+  say("電源を入れた直後","起動するまでの間はリレーで素通り。起動すると、前に電源を切ったときの ON / OFF に戻る(ここでは Noble と Bass Butler)。");
+}
+function edited(){const s=st.scene&&SCENES[st.scene];if(!s||!s.on)return false;return [...st.on].sort().join()!==[...s.on].sort().join();}
+function names(ids){return ids.length?ids.map(i=>FX.find(f=>f.id===i).label).join(" + "):"なし"}
+function recall(n){
+  const s=SCENES[n];
+  if(st.mode!=="play"){say(n+" を長押しした","TUNER か BYPASS の間は効かない。先に戻す。");}
+  else if(!s.on){say(n+" を長押しした","まだ組み合わせを覚えていない。スマホで覚えさせると使えるようになる。");}
+  else{st.scene=n;st.on=new Set(s.on);say(n+" を長押し → 覚えておいた組み合わせ「"+s.name+"」","ON: "+names(s.on)+"。ほかは全部 OFF。並びは変わらず ON / OFF だけ切り替わるので、音が途切れにくい。");}
+  render();
+}
+function fxAt(box,n){return FX.find(f=>f.box===box&&f.n===n)}
+function press(key){
+  if(key==="TUNER"){
+    if(st.mode==="tuner"){st.mode="play";say("TUNER をもう一度踏んだ","チューナーが終わって、さっきの音に戻った。");}
+    else{st.mode="tuner";say("TUNER を踏んだ","音が消えてチューナーになる。アンプにも PA にも音は出ない。");}
+  }else if(key==="BYPASS"){
+    if(st.mode==="bypass"){st.mode="play";say("BYPASS をもう一度踏んだ","エフェクトの通り道に戻った。");}
+    else{st.mode="bypass";say("BYPASS を踏んだ","リレーでベースと出力を直結。エフェクトは全部通らない。ラズパイが固まったときも、これで音が出る。");}
+  }else{
+    const [b,n]=key.split("-").map(Number), f=fxAt(b,n);
+    if(st.mode!=="play"){say(f.label+" を踏んだ","TUNER か BYPASS の間は効かない。先に戻す。");}
+    else{ if(st.on.has(f.id))st.on.delete(f.id); else st.on.add(f.id);
+      const isOn=st.on.has(f.id);
+      let why=isOn?f.label+" を足した。":f.label+" を外した。";
+      if(f.id==="sans"&&!isOn&&st.on.has("b7k"))why+=" 前の段が外れるので B7K があまり歪まなくなり、音量も下がる。";
+      if(f.nam&&isOn&&FX.filter(x=>x.nam&&st.on.has(x.id)).length>=3)why+=" NAM が3個以上 ON。ラズパイで何個まで動くかは届いた日に測る。";
+      if(edited())why+=" 画面の名前の「*」= 覚えた組み合わせから変わっている。";
+      say(f.label+" を短く押した → "+(isOn?"ON":"OFF"), why);}
+  }
+  render();
+}
+function ring(cls){return '<span class="ring '+cls+'"><span class="cap"></span></span>'}
+function fxBtn(f,play){const cls=(play&&st.on.has(f.id))?"blue":"";
+  return '<button class="sw" type="button" data-k="'+f.box+"-"+f.n+'" aria-label="'+f.label+'">'+ring(cls)+'<span>'+f.n+'</span><span class="sub">'+f.label+'</span></button>';}
+function render(){
+  const play=st.mode==="play";
+  const main=['<button class="sw" type="button" data-k="TUNER" aria-label="TUNER">'+ring(st.mode==="tuner"?"red":"")+'<span>TUNER</span><span class="sub"></span></button>'];
+  [1,2,3].forEach(n=>main.push(fxBtn(fxAt(0,n),play)));
+  main.push('<button class="sw" type="button" data-k="BYPASS" aria-label="BYPASS">'+ring(st.mode==="bypass"?"white":"")+'<span>BYPASS</span><span class="sub"></span></button>');
+  document.getElementById("main").innerHTML=main.join("");
+  document.getElementById("ext1").innerHTML=[1,2,3].map(n=>fxBtn(fxAt(1,n),play)).join("");
+  const lcd=document.getElementById("lcd");
+  if(st.mode==="tuner")lcd.innerHTML='<div class="big">TUNER</div><div class="tuner">E &nbsp;◀━━━●━━━▶</div><div class="row off">音は消えている</div>';
+  else if(st.mode==="bypass")lcd.innerHTML='<div class="big">BYPASS</div><div class="row">リレーで直結中</div>';
+  else{const onl=FX.filter(f=>st.on.has(f.id));
+    const nam=onl.filter(f=>f.nam).length;
+    lcd.innerHTML='<div class="big">'+(st.scene?'長押し'+st.scene+'&nbsp; '+SCENES[st.scene].name+(edited()?' *':''):(onl.length?onl.length+' 台 ON':'エフェクトなし'))+'</div><div class="row">'+(onl.map(f=>'<span>'+f.label+'</span>').join("")||'<span class="off">素の音</span>')+'</div><div class="row off">NAM '+nam+'個 ON</div>';}
+  const A='<span class="arrow">→</span>';
+  let flow='<span class="node">ベース</span>'+A;
+  if(st.mode==="bypass")flow+='<span class="node">リレーで直結</span>'+A;
+  else if(st.mode==="tuner")flow+='<span class="node mute">チューナー(音は止まる)</span>'+A;
+  else{FX.forEach(f=>{flow+='<span class="node fx'+(st.on.has(f.id)?"":" skip")+'">'+f.label+'</span>'+A;});
+    flow+='<span class="node">音量</span>'+A+'<span class="node">リミッター</span>'+A;}
+  flow+='<span class="node'+(st.mode==="tuner"?" skip":"")+'">アンプ / PA</span>';
+  document.getElementById("flow").innerHTML=flow;
+  document.getElementById("what").textContent=msg.what;
+  document.getElementById("why").textContent=msg.why;
+}
+// 短押し / 長押し(本体の 1/2/3 だけ長押しが効く)
+let hold=null;
+document.addEventListener("pointerdown",e=>{const b=e.target.closest(".sw");if(!b)return;
+  const k=b.dataset.k, mainFx=/^0-[123]$/.test(k);
+  hold={k,done:false,t:mainFx?setTimeout(()=>{hold.done=true;b.classList.add("holding");recall(+k.split("-")[1]);},600):null};
+  if(mainFx)b.classList.add("holding"); else {hold.done=true; press(k);}  // 増設箱・TUNER・BYPASS は踏んだ瞬間に切り替える
+});
+document.addEventListener("pointerup",e=>{if(!hold)return;clearTimeout(hold.t);document.querySelectorAll(".holding").forEach(x=>x.classList.remove("holding"));
+  if(!hold.done)press(hold.k);hold=null;});
+document.addEventListener("pointercancel",()=>{if(hold){clearTimeout(hold.t);hold=null;}document.querySelectorAll(".holding").forEach(x=>x.classList.remove("holding"));});
+document.addEventListener("contextmenu",e=>{if(e.target.closest(".sw"))e.preventDefault();});
+document.addEventListener("keydown",e=>{const b=e.target.closest&&e.target.closest(".sw");if(!b||(e.key!=="Enter"&&e.key!==" "))return;e.preventDefault();
+  const k=b.dataset.k; if(e.shiftKey&&/^0-[123]$/.test(k))recall(+k.split("-")[1]); else press(k);});
+document.getElementById("reset").addEventListener("click",()=>{init();render();});
+document.querySelectorAll(".save").forEach(b=>b.addEventListener("click",()=>{const n=+b.dataset.n;
+  SCENES[n]={name:"組み合わせ"+n,on:[...st.on]};st.scene=n;st.mode="play";
+  say("長押し"+n+" に覚えた","中身: "+names([...st.on])+"。本番ではスマホの画面で覚えさせる。エフェクトを足したり外したりしてから、本体の "+n+" を長押しすると一発で戻る。");render();}));
+init();render();
+</script>

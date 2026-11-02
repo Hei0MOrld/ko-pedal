@@ -1,0 +1,146 @@
+<title>琥ペダル 見た目3案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=Shippori+Mincho+B1:wght@800&display=swap">
+<style>
+/* Layout: 3案を同じ図で縦に並べ、それぞれに材料と作り方を添える。比較表で締める */
+:root{
+  --bg:#ecebe6; --paper:#f7f6f2; --ink:#1f1d1a; --muted:#67625a; --line:#cfcac0; --accent:#c26a12;
+  --display:"Shippori Mincho B1","Zen Kaku Gothic New",serif;
+  --body:"Zen Kaku Gothic New",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#161412; --paper:#1e1b18; --ink:#ebe7df; --muted:#a39d92; --line:#38332d; --accent:#f0a24a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#161412; --paper:#1e1b18; --ink:#ebe7df; --muted:#a39d92; --line:#38332d; --accent:#f0a24a; color-scheme:dark}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.75}
+.wrap{max-width:920px;margin:0 auto;padding-inline:16px;padding-block:40px 64px;display:grid;gap:44px}
+header{display:grid;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,6vw,46px);line-height:1.15;margin:0;text-wrap:balance}
+h2{font-family:var(--display);font-weight:800;font-size:24px;margin:0;text-wrap:balance}
+p{margin:0;max-width:65ch}
+.lede{color:var(--muted)}
+section{display:grid;gap:14px;min-width:0}
+.tag{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.06em}
+.sheet{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:16px;overflow-x:auto;min-width:0}
+.sheet svg{display:block;width:100%;min-width:560px;height:auto}
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px 24px;margin:0}
+.spec div{display:grid;grid-template-columns:5.5em 1fr;gap:10px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.spec dt{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:2px}
+.spec dd{margin:0;min-width:0}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--muted)}
+.note{border-left:3px solid var(--accent);padding:4px 0 4px 14px;max-width:65ch}
+svg text{font-family:var(--mono)}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">BASS PEDAL / LOOKS 2026-10-02</div>
+  <h1>琥ペダル 見た目3案</h1>
+  <p class="lede">どれも「木の胴体 + 金属の天板」。木は自分で自由に削り、踏まれる天板と背面のジャックまわりは金属で受け止めます。「琥」は琥珀の琥なので、光る部分は琥珀色にそろえました。</p>
+</header>
+
+<section id="a">
+  <div class="tag">案 1</div>
+  <h2>ウォルナット × 黒の天板</h2>
+  <div class="sheet"><svg data-look="walnut-black" viewBox="0 0 760 330" role="img" aria-label="濃い茶色のウォルナット材の胴体に、マットブラックのアルミ天板。LED と文字は琥珀色"></svg></div>
+  <dl class="spec">
+    <div><dt>胴体</dt><dd>ウォルナット（濃い茶）、オイル仕上げ</dd></div>
+    <div><dt>天板</dt><dd>アルミ 2〜3mm、マットブラック塗装</dd></div>
+    <div><dt>光</dt><dd>LED も画面の文字も琥珀色だけ</dd></div>
+    <div><dt>印象</dt><dd>ミニマル。ステージで LED が一番見やすい</dd></div>
+  </dl>
+</section>
+
+<section id="b">
+  <div class="tag">案 2</div>
+  <h2>ウォルナット × 真鍮の天板</h2>
+  <div class="sheet"><svg data-look="walnut-brass" viewBox="0 0 760 330" role="img" aria-label="ウォルナット材の胴体に、真鍮の天板。黒い文字の刻印"></svg></div>
+  <dl class="spec">
+    <div><dt>胴体</dt><dd>ウォルナット、オイル仕上げ</dd></div>
+    <div><dt>天板</dt><dd>真鍮 2mm、ヘアライン。使うほどくすんで味が出る</dd></div>
+    <div><dt>光</dt><dd>琥珀色の LED。文字は黒の刻印</dd></div>
+    <div><dt>印象</dt><dd>ヴィンテージで温かい。真鍮は重く、値段も高め</dd></div>
+  </dl>
+</section>
+
+<section id="c">
+  <div class="tag">案 3</div>
+  <h2>明るい木 × 琥珀アクリル</h2>
+  <div class="sheet"><svg data-look="ash-amber" viewBox="0 0 760 330" role="img" aria-label="明るいアッシュ材の胴体に黒いアルミ天板、画面のまわりと縁に琥珀色の透けるアクリル"></svg></div>
+  <dl class="spec">
+    <div><dt>胴体</dt><dd>アッシュかメープル（明るい木目）</dd></div>
+    <div><dt>天板</dt><dd>黒のアルミ。画面のまわりと奥の縁だけ、琥珀色の透けるアクリル</dd></div>
+    <div><dt>光</dt><dd>アクリルの裏から LED を当てて、縁がぼんやり琥珀色に光る</dd></div>
+    <div><dt>印象</dt><dd>名前そのもの。一番目立つ。アクリルは踏まない位置にだけ使う</dd></div>
+  </dl>
+</section>
+
+<section>
+  <h2>比べると</h2>
+  <div class="tbl">
+  <table>
+    <thead><tr><th></th><th>1 黒の天板</th><th>2 真鍮の天板</th><th>3 琥珀アクリル</th></tr></thead>
+    <tbody>
+      <tr><td>ステージでの見やすさ</td><td>◎</td><td>○ 光が反射する</td><td>◎</td></tr>
+      <tr><td>作りやすさ</td><td>◎ 塗装済みの板を切るだけ</td><td>○ 真鍮は硬くて穴あけに手間</td><td>○ アクリルはレーザー加工を注文</td></tr>
+      <tr><td>天板の材料費の目安</td><td>2〜4千円</td><td>5千〜1万円</td><td>3〜6千円</td></tr>
+      <tr><td>増設箱とのそろえやすさ</td><td>◎</td><td>○</td><td>○</td></tr>
+      <tr><td>発信での目立ち方</td><td>○</td><td>○</td><td>◎</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">どの案でも、木の内側に銅かアルミのテープを貼ってグラウンドにつなぐ（雑音よけ）。通気口は金属の箱より大きめにする。</p>
+</section>
+</div>
+
+<script>
+const LOOKS = {
+  "walnut-black": {wood:["#6b4630","#4a2e1d","#3a2316"], grain:"#2a170c", plate:"#1d1d1f", plateEdge:"#000", silk:"#f0a24a", fsw:"#cfd2d2", knob:"#111", knobMark:"#f0a24a", led:"#ffb030", ledOff:"#3a3633", screenFg:"#ffb030", amber:false, brushed:false},
+  "walnut-brass": {wood:["#6b4630","#4a2e1d","#3a2316"], grain:"#2a170c", plate:"#c9a24e", plateEdge:"#8a6a25", silk:"#2a1d0c", fsw:"#e8d39a", knob:"#b88a35", knobMark:"#2a1d0c", led:"#ffb030", ledOff:"#7d6634", screenFg:"#ffb030", amber:false, brushed:true},
+  "ash-amber": {wood:["#e2c9a0","#cfae7d","#bf9a68"], grain:"#a9834f", plate:"#1d1d1f", plateEdge:"#000", silk:"#f0a24a", fsw:"#cfd2d2", knob:"#111", knobMark:"#f0a24a", led:"#ffb030", ledOff:"#3a3633", screenFg:"#ffb030", amber:true, brushed:false}
+};
+const NS = "http://www.w3.org/2000/svg";
+function el(p, tag, attrs, text){ const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(text!=null) e.textContent=text; p.appendChild(e); return e; }
+document.querySelectorAll("svg[data-look]").forEach((svg,i)=>{
+  const L = LOOKS[svg.dataset.look], id = "g"+i;
+  const defs = el(svg,"defs",{});
+  const lg = el(defs,"linearGradient",{id:id+"w",x1:"0",y1:"0",x2:"0",y2:"1"});
+  L.wood.forEach((c,j)=>el(lg,"stop",{offset:String(j/(L.wood.length-1)),"stop-color":c}));
+  const glow = el(defs,"filter",{id:id+"f",x:"-60%",y:"-60%",width:"220%",height:"220%"}); el(glow,"feGaussianBlur",{stdDeviation:"5"});
+  if(L.brushed){ const pg=el(defs,"linearGradient",{id:id+"p",x1:"0",y1:"0",x2:"1",y2:"0"}); [["0","#d8b45e"],[".5","#c39a45"],["1","#d6b058"]].forEach(([o,c])=>el(pg,"stop",{offset:o,"stop-color":c})); }
+  el(svg,"rect",{x:50,y:34,width:660,height:262,rx:16,fill:`url(#${id}w)`});
+  for(let k=0;k<14;k++){ const y=44+k*18+(k%3)*3; el(svg,"path",{d:`M60 ${y} C 220 ${y-6}, 420 ${y+8}, 700 ${y-2}`,stroke:L.grain,"stroke-width":k%4?0.8:1.6,fill:"none",opacity:.45}); }
+  el(svg,"rect",{x:66,y:46,width:628,height:216,rx:6,fill:L.brushed?`url(#${id}p)`:L.plate,stroke:L.plateEdge,"stroke-width":1.5});
+  if(L.brushed) for(let k=0;k<40;k++) el(svg,"line",{x1:70,x2:690,y1:50+k*5.3,y2:50+k*5.3,stroke:"#fff",opacity:.07});
+  [[78,58],[682,58],[78,250],[682,250]].forEach(([x,y])=>el(svg,"circle",{cx:x,cy:y,r:3.5,fill:L.plateEdge,opacity:.7}));
+  if(L.amber){
+    el(svg,"rect",{x:66,y:46,width:628,height:14,fill:"#f0a24a",opacity:.85});
+    el(svg,"rect",{x:66,y:46,width:628,height:14,fill:"#ffb030",filter:`url(#${id}f)`,opacity:.7});
+    el(svg,"rect",{x:316,y:58,width:128,height:94,rx:8,fill:"#e38b1f",opacity:.85});
+  }
+  el(svg,"rect",{x:331,y:66,width:98,height:74,rx:4,fill:"#0b0b0b",stroke:"#000"});
+  el(svg,"text",{x:340,y:84,"font-size":9,fill:L.screenFg,opacity:.7},"TONE B");
+  el(svg,"text",{x:340,y:110,"font-size":14,"font-weight":600,fill:L.screenFg},"80s FUNK");
+  el(svg,"text",{x:340,y:130,"font-size":8,fill:L.screenFg,opacity:.6},"SansAmp▸COMP");
+  el(svg,"text",{x:94,y:108,"font-size":40,fill:L.silk,"font-family":"Shippori Mincho B1, serif","font-weight":800},"琥");
+  el(svg,"text",{x:94,y:130,"font-size":10,fill:L.silk,"letter-spacing":"2"},"KO BASS RIG");
+  el(svg,"circle",{cx:640,cy:100,r:24,fill:L.knob,stroke:L.plateEdge,"stroke-width":1.5});
+  el(svg,"line",{x1:640,y1:100,x2:655,y2:83,stroke:L.knobMark,"stroke-width":3,"stroke-linecap":"round"});
+  el(svg,"text",{x:640,y:142,"font-size":9,fill:L.silk,"text-anchor":"middle","letter-spacing":"1"},"VOLUME");
+  [["TUNER",0],["A",0],["B",1],["C",1],["BYPASS",0]].forEach(([lab,on],j)=>{
+    const x=120+j*130, y=206;
+    if(on){ el(svg,"circle",{cx:x,cy:y,r:28,fill:"none",stroke:L.led,"stroke-width":8,filter:`url(#${id}f)`}); el(svg,"circle",{cx:x,cy:y,r:28,fill:"none",stroke:L.led,"stroke-width":4}); }
+    else el(svg,"circle",{cx:x,cy:y,r:28,fill:"none",stroke:L.ledOff,"stroke-width":4});
+    el(svg,"circle",{cx:x,cy:y,r:19,fill:L.fsw,stroke:"#555","stroke-width":1.5});
+    el(svg,"circle",{cx:x,cy:y,r:12,fill:L.fsw,stroke:"#777","stroke-width":1,opacity:.8});
+    el(svg,"text",{x:x,y:y+46,"font-size":9,fill:L.silk,"text-anchor":"middle","letter-spacing":"1"},lab);
+  });
+  el(svg,"rect",{x:50,y:282,width:660,height:14,rx:4,fill:L.wood[2]});
+  el(svg,"text",{x:380,y:322,"font-size":11,fill:"var(--muted)","text-anchor":"middle"},"上から見た図 / 330 × 120 mm（目安）");
+});
+</script>

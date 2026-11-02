@@ -1,0 +1,179 @@
+<title>ペダルの画面配線</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@400;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout: one column workbench sheet — what it is, header map, wiring table, checks */
+:root {
+  --bg: #f1f2f0; --paper: #ffffff; --fg: #1c2024; --muted: #59606a; --line: #d6d8d4;
+  --pcb: #b3261e; --pcb-text: #fff4ef; --hdr: #2b2f33; --hdr-text: #ffffff; --pin: #c9a227; --accent: #0f7c6c;
+  --p5v: #c62828; --p33: #d97706; --gnd: #262626; --spi: #1d4ed8; --ctl: #7c3aed; --off: #b8bcc2;
+  --ok: #2e7d32; --warn: #a15c00; --bad: #c62828;
+  --f-head: "M PLUS 1p", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #15171a; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840;
+  --pcb: #8f2a24; --pcb-text: #ffe9e2; --hdr: #0d0f11; --pin: #d9b25a; --accent: #3cc2ab;
+  --p5v: #ff7a72; --p33: #f0a74a; --gnd: #d4d4d4; --spi: #60a5fa; --ctl: #c4a5ff; --off: #4b5058;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #15171a; --paper: #1f2226; --fg: #e9e7e2; --muted: #a4a9b1; --line: #343840;
+  --pcb: #8f2a24; --pcb-text: #ffe9e2; --hdr: #0d0f11; --pin: #d9b25a; --accent: #3cc2ab;
+  --p5v: #ff7a72; --p33: #f0a74a; --gnd: #d4d4d4; --spi: #60a5fa; --ctl: #c4a5ff; --off: #4b5058;
+  --ok: #7cc77f; --warn: #f0a74a; --bad: #ff7a72; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-head); font-size: 16px; line-height: 1.7;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 860px; margin: 0 auto; padding-block: 28px 64px; display: grid; gap: 24px; }
+h1 { font-weight: 800; font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.25; margin: 0; text-wrap: balance; }
+h2 { font-weight: 800; font-size: 1.2rem; margin: 0 0 10px; text-wrap: balance; }
+.lead { color: var(--muted); margin: 6px 0 0; max-width: 62ch; }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 20px; min-width: 0; }
+.note { font-size: .9rem; color: var(--muted); margin: 10px 0 0; }
+.diagram { overflow-x: auto; }
+.diagram svg { display: block; min-width: 560px; width: 100%; height: auto; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: .8rem; letter-spacing: .04em; color: var(--muted); font-weight: 700; }
+td.pin { font-family: var(--f-mono); font-weight: 700; white-space: nowrap; }
+.sw { display: inline-block; width: .8em; height: .8em; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+tr.skip td { color: var(--muted); }
+ol.steps { margin: 0; padding-left: 1.3em; display: grid; gap: 8px; }
+.case { border-left: 4px solid var(--line); padding: 8px 12px; border-radius: 0 6px 6px 0; background: color-mix(in srgb, var(--paper) 92%, var(--fg)); margin-top: 10px; }
+.case.ok { border-color: var(--ok); } .case.bad { border-color: var(--bad); } .case.warn { border-color: var(--warn); }
+.case b { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .9rem; margin-top: 10px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+</style>
+
+<main>
+  <header>
+    <h1>ペダルの画面配線(手順 E-1)</h1>
+    <p class="lead">3.5 インチの画面(Tayda A-8182、ILI9488、480×320、裏の型番 MSP3520 系)をラズパイの SPI につなぎます。
+      つないだあと、SPI を有効にしてテストの絵を出すのは Claude がやります。</p>
+  </header>
+
+  <section>
+    <h2>はじめに</h2>
+    <div class="case bad"><b>ラズパイの電源を抜いてから</b>線を挿す・抜く。5V(2 番)と 3.3V(17 番)の線の先が、ほかのピンに触れないように。5V が信号のピンに入るとラズパイが壊れます。</div>
+    <p class="note">画面の基板には 3.3V を作る部品(U1)が載っているので、VCC は 5V で大丈夫。信号は 3.3V なのでラズパイと直結できます。タッチ(T_ の 5 本)と SD カード(SD_ の 4 本)は使いません。</p>
+  </section>
+
+  <section>
+    <h2>画面のピン(裏から見た図)</h2>
+    <div class="diagram" role="img" aria-label="画面の裏のピン14本と、それぞれのつなぎ先">
+      <svg id="lcd" viewBox="0 0 600 330" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <p class="note">裏の黄色いピンの列。上から T_IRQ … CS・GND・VCC の順(写真と同じ向き)。灰色はつながない。</p>
+  </section>
+
+  <section>
+    <h2>ラズパイのピン</h2>
+    <div class="diagram" role="img" aria-label="ラズパイ5のGPIOピン40本のうち、使う8本">
+      <svg id="pi" viewBox="0 0 600 250" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--p5v)"></span>5V</span>
+      <span><span class="sw" style="background:var(--p33)"></span>3.3V</span>
+      <span><span class="sw" style="background:var(--gnd)"></span>GND</span>
+      <span><span class="sw" style="background:var(--spi)"></span>SPI(絵のデータ)</span>
+      <span><span class="sw" style="background:var(--ctl)"></span>画面の制御</span>
+    </div>
+    <p class="note">ラズパイを上から見て、ピンの列を横向きに置いた図。<b>USB・LAN の端子から遠い方の端</b>が 1・2 番。
+      <b>基板の内側の列が奇数(1, 3, 5…)</b>、<b>ふち側の列が偶数(2, 4, 6…)</b>。</p>
+  </section>
+
+  <section>
+    <h2>つなぐ場所</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>画面のピン</th><th>ラズパイ</th><th>役目</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>確かめる順番</h2>
+    <ol class="steps">
+      <li><b>電源を入れる前に</b>、テスターの導通で 2 番(5V)と 6 番(GND)の間が<b>鳴らない</b>ことを確かめる</li>
+      <li>電源を入れる → 画面が<b>白く光れば</b>電源とバックライトは OK(まだ絵は出ません)</li>
+      <li>Claude が SPI を有効にして、テストの絵(色の帯と文字)を出す</li>
+      <li>絵が出たら E-1 完了。次は E-2: つまみを回すとエフェクトの値が変わり、画面に出る</li>
+    </ol>
+    <div class="case warn"><b>白いまま絵が出ないとき</b>CS・D/C・RESET・SDI・SCK の 5 本のどれかが違う列。とくに D/C(18 番)と RESET(22 番)の取り違えが多い。</div>
+    <div class="case bad"><b>画面が光らない・ラズパイが落ちる</b>すぐ電源を抜く。VCC と GND が逆、または 5V がほかのピンに触れている。</div>
+  </section>
+</main>
+
+<script>
+(function () {
+  const ns = "http://www.w3.org/2000/svg";
+  const el = (svg, tag, attrs, text) => {
+    const e = document.createElementNS(ns, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    svg.appendChild(e); return e;
+  };
+  // 画面ピン → ラズパイ
+  const wires = [
+    ["T_IRQ", null], ["T_OUT", null], ["T_DIN", null], ["T_CS", null], ["T_CLK", null],
+    ["SDO(MISO)", null, "つながない(ほかとぶつかることがある)"],
+    ["LED", 17, "バックライト(常に点灯)", "--p33", "3.3V"],
+    ["SCK", 23, "SPI クロック", "--spi", "GPIO11"],
+    ["SDI", 19, "SPI データ(MOSI)", "--spi", "GPIO10"],
+    ["D/C", 18, "データか命令か", "--ctl", "GPIO24"],
+    ["RESET", 22, "リセット", "--ctl", "GPIO25"],
+    ["CS", 24, "画面を選ぶ(CE0)", "--spi", "GPIO8"],
+    ["GND", 6, "GND", "--gnd", "GND"],
+    ["VCC", 2, "電源", "--p5v", "5V"],
+  ];
+  const used = {};
+  wires.forEach(w => { if (w[1]) used[w[1]] = w; });
+
+  // 画面の裏
+  const lcd = document.getElementById("lcd");
+  el(lcd, "rect", { x: 20, y: 10, width: 300, height: 310, rx: 10, fill: "var(--pcb)" });
+  el(lcd, "text", { x: 230, y: 34, "font-size": 12, fill: "var(--pcb-text)", "text-anchor": "middle", "font-family": "var(--f-mono)" }, "SPI 480×320");
+  wires.forEach((w, i) => {
+    const y = 30 + i * 20.5, on = !!w[1];
+    el(lcd, "rect", { x: 34, y: y - 6, width: 14, height: 12, rx: 2, fill: on ? `var(${w[3]})` : "var(--off)" });
+    el(lcd, "text", { x: 58, y: y + 4, "font-size": 12, "font-weight": 700, fill: "var(--pcb-text)", "font-family": "var(--f-mono)" }, w[0]);
+    if (on) {
+      el(lcd, "line", { x1: 140, y1: y, x2: 420, y2: y, stroke: `var(${w[3]})`, "stroke-width": 3, "stroke-linecap": "round" });
+      el(lcd, "text", { x: 430, y: y + 4, "font-size": 13, "font-weight": 700, fill: "var(--fg)" }, `${w[1]} 番(${w[4]})`);
+    } else {
+      el(lcd, "text", { x: 150, y: y + 4, "font-size": 11, fill: "var(--pcb-text)", opacity: .7 }, "—");
+    }
+  });
+
+  // ラズパイのピン列(左が 1・2 番)
+  const pi = document.getElementById("pi");
+  el(pi, "rect", { x: 10, y: 60, width: 580, height: 110, rx: 8, fill: "var(--hdr)" });
+  el(pi, "text", { x: 14, y: 50, "font-size": 12, fill: "var(--muted)" }, "← USB・LAN から遠い端");
+  el(pi, "text", { x: 586, y: 50, "font-size": 12, fill: "var(--muted)", "text-anchor": "end" }, "USB・LAN 側 →");
+  el(pi, "text", { x: 14, y: 196, "font-size": 12, fill: "var(--muted)" }, "上の列 = ふち側(偶数) / 下の列 = 内側(奇数)");
+  for (let n = 1; n <= 40; n++) {
+    const col = Math.floor((n - 1) / 2), even = n % 2 === 0;
+    const x = 26 + col * 28.5, y = even ? 90 : 140;
+    const w = used[n];
+    el(pi, "circle", { cx: x, cy: y, r: w ? 10 : 6, fill: w ? `var(${w[3]})` : "var(--pin)", opacity: w ? 1 : .55 });
+    el(pi, "text", { x, y: even ? y - 15 : y + 24, "font-size": w ? 13 : 10, "font-weight": 700, fill: "var(--hdr-text)", opacity: w ? 1 : .6, "text-anchor": "middle", "font-family": "var(--f-mono)" }, String(n));
+    if (w) {
+      el(pi, "text", { x, y: even ? 22 + (col % 2) * 12 : 222 + (col % 2) * 14, "font-size": 10, fill: "var(--muted)", "text-anchor": "middle" }, w[0]);
+    }
+  }
+
+  // 表
+  const tb = document.getElementById("rows");
+  wires.slice().reverse().forEach(w => {
+    const tr = document.createElement("tr");
+    if (!w[1]) tr.className = "skip";
+    tr.innerHTML = w[1]
+      ? `<td class="pin"><span class="sw" style="background:var(${w[3]})"></span>${w[0]}</td><td class="pin">${w[1]} 番(${w[4]})</td><td>${w[2]}</td>`
+      : `<td class="pin">${w[0]}</td><td>つながない</td><td>${w[2] || "タッチ用(使わない)"}</td>`;
+    tb.appendChild(tr);
+  });
+})();
+</script>

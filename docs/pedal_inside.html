@@ -1,0 +1,565 @@
+<title>琥ペダル 内部配置</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: scale drawings (top + side, mm) first, then the per-part in/out table, then rules. Digital vs audio zones carry the color. */
+:root{
+  --bg:#f4f5f2; --panel:#ffffff; --fg:#1d2320; --muted:#5d6762; --line:#c9cfca;
+  --dig:#3a6aa0; --dig-bg:#e3ebf4; --ana:#a8571f; --ana-bg:#f6e9de;
+  --sig:#c8321c; --usb:#4b5b70; --pwr:#8a7414; --top:#7b5ea7;
+  --display:"Zen Kaku Gothic New",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141816; --panel:#1c211f; --fg:#e4e9e5; --muted:#9aa49e; --line:#38403c;
+  --dig:#7fa8d8; --dig-bg:#1d2a38; --ana:#e09a63; --ana-bg:#33251a;
+  --sig:#ff6a50; --usb:#9fb0c6; --pwr:#d6bd4a; --top:#b79be0; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141816; --panel:#1c211f; --fg:#e4e9e5; --muted:#9aa49e; --line:#38403c;
+  --dig:#7fa8d8; --dig-bg:#1d2a38; --ana:#e09a63; --ana-bg:#33251a;
+  --sig:#ff6a50; --usb:#9fb0c6; --pwr:#d6bd4a; --top:#b79be0; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--display);line-height:1.7}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 48px;display:grid;gap:28px}
+h1{font-size:1.6rem;margin:0;text-wrap:balance}
+h2{font-size:1.1rem;margin:0 0 8px}
+.sub{color:var(--muted);margin:4px 0 0;max-width:68ch}
+.fig{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto}
+.fig svg{display:block;width:100%;min-width:620px;height:auto}
+svg text{font-family:var(--display);fill:var(--fg)}
+svg .mono{font-family:var(--mono);fill:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:12px;font-size:.85rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:22px;height:0;border-top:3px solid}
+.box{width:14px;height:14px;border-radius:3px;border:1.5px solid}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.cols>section{min-width:0}
+ol,ul{margin:0;padding-left:1.3em}
+li{margin-bottom:6px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tbl{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:8px 12px;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.04em;color:var(--muted);font-weight:700;background:var(--bg)}
+td:first-child{font-weight:700;white-space:nowrap}
+tr.zone td{background:var(--bg);color:var(--muted);font-size:.8rem;font-weight:700;letter-spacing:.04em}
+.tag{display:inline-block;font-size:.72rem;padding:0 6px;border-radius:4px;border:1px solid;margin-left:4px;vertical-align:1px}
+.t-sig{color:var(--sig);border-color:var(--sig)} .t-usb{color:var(--usb);border-color:var(--usb)}
+.t-pwr{color:var(--pwr);border-color:var(--pwr)} .t-gp{color:var(--dig);border-color:var(--dig)}
+.todo{color:var(--sig);font-weight:700}
+.views{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.views figure{margin:0;min-width:0}
+.views figcaption{font-size:.9rem;font-weight:700;margin-bottom:4px}
+.fig .views svg{min-width:0}
+.iso{margin:0 0 16px}
+.iso svg{display:block;width:100%;max-width:760px;min-width:0;height:auto;margin:0 auto}
+.parts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-bottom:16px}
+.part{margin:0;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.part.wide{grid-column:1/-1}
+.part figcaption{font-weight:700;font-size:.9rem;margin-bottom:6px}
+.part .src{font-weight:400;font-size:.75rem;color:var(--muted);margin-left:6px}
+.part .src.todo{color:var(--sig)}
+.part svg{display:block;width:100%;height:auto}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>琥ペダル 内部配置（案 2）</h1>
+    <p class="sub">10/13：UR12 の2枚を<b>折り返して重ねる</b>（平たいケーブル3本でつながっているので折れる）→ 奥行き <span class="mono">120</span> mm のまま入る。上から見た図・横から見た図は mm で縮尺どおり。「推定」の大きさは部品が届いたら実測して直す。</p>
+  </header>
+
+  <section class="fig" aria-label="上から見た配置図">
+    <svg viewBox="-34 -36 400 196" role="img" aria-label="ペダル内部の上面配置図。幅330、奥行き120">
+      <rect x="0" y="0" width="128" height="70" style="fill:var(--dig-bg)"/>
+      <rect x="128" y="0" width="202" height="70" style="fill:var(--ana-bg)"/>
+      <text x="4" y="67" font-size="5" style="fill:var(--dig)">デジタル側</text>
+      <text x="304" y="67" font-size="5" style="fill:var(--ana)">音の側</text>
+      <rect x="0" y="0" width="330" height="120" rx="2" style="fill:none;stroke:var(--fg)" stroke-width="1.6"/>
+      <line x1="0" y1="70" x2="330" y2="70" style="stroke:var(--line)" stroke-dasharray="3 3"/>
+      <text x="165" y="-26" font-size="7" text-anchor="middle">背面（ジャック類）</text>
+      <text x="165" y="150" font-size="7" text-anchor="middle">手前（足元）</text>
+      <line x1="0" y1="-18" x2="330" y2="-18" style="stroke:var(--muted)" stroke-width=".5"/>
+      <text class="mono" x="40" y="-20" font-size="5.5" text-anchor="middle">330 mm</text>
+      <line x1="342" y1="0" x2="342" y2="120" style="stroke:var(--muted)" stroke-width=".5"/>
+      <text class="mono" x="346" y="63" font-size="5.5">120</text>
+
+      <!-- wiring under parts -->
+      <polyline points="306,0 306,6 310,10" style="fill:none;stroke:var(--sig)" stroke-width="1.8"/>
+      <polyline points="312,60 312,66 290,66 290,62" style="fill:none;stroke:var(--sig)" stroke-width="1.8"/>
+      <polyline points="240,4 240,2 296,2 306,10" style="fill:none;stroke:var(--sig)" stroke-width="1.8"/>
+      <polyline points="304,10 280,4 272,0" style="fill:none;stroke:var(--sig)" stroke-width="1.8"/>
+      <polyline points="222,4 222,1 196,1 190,0" style="fill:none;stroke:var(--sig)" stroke-width="1.2" stroke-dasharray="2 1.5"/>
+      <polyline points="130,61 140,61 140,40 155,40" style="fill:none;stroke:var(--usb)" stroke-width="2"/>
+      <text x="147" y="37" font-size="4" text-anchor="middle" style="fill:var(--usb)">USB（L字）</text>
+      <polyline points="130,79 134,79 134,90 140,92" style="fill:none;stroke:var(--usb)" stroke-width="1.6"/>
+      <polyline points="54,29 54,22 44,22 37,32" style="fill:none;stroke:var(--pwr)" stroke-width="1.6"/>
+      <polyline points="200,90 240,74 300,60" style="fill:none;stroke:var(--usb)" stroke-width="1" stroke-dasharray="2 1.5"/>
+      <text x="246" y="80" font-size="3.6" style="fill:var(--usb)">リレーを動かす線</text>
+      <polyline points="40,3 40,6 48,8" style="fill:none;stroke:var(--usb)" stroke-width="1.2"/>
+      <polyline points="34,53 38,53 38,66 150,66 150,58 155,58" style="fill:none;stroke:var(--pwr)" stroke-width="1.4"/>
+      <line x1="14" y1="5" x2="14" y2="7" style="stroke:var(--pwr)" stroke-width="1.6"/>
+
+      <!-- rear panel parts -->
+      <g font-size="4.4">
+        <circle cx="14" cy="0" r="5" style="fill:var(--panel);stroke:var(--pwr)" stroke-width="1.4"/><text x="14" y="-7" text-anchor="middle">DC</text>
+        <rect x="34" y="-3" width="12" height="6" style="fill:var(--panel);stroke:var(--usb)" stroke-width="1.2"/><text x="40" y="-7" text-anchor="middle">増設USB</text>
+        <circle cx="186" cy="0" r="9" style="fill:var(--panel);stroke:var(--ana)" stroke-width="1.4"/><text x="186" y="-11" text-anchor="middle">XLR(DI)</text>
+        <rect x="205" y="-3" width="7" height="6" style="fill:var(--panel);stroke:var(--ana)"/><text x="208" y="-6" text-anchor="middle">LIFT</text>
+        <rect x="223" y="-3" width="7" height="6" style="fill:var(--panel);stroke:var(--ana)"/><text x="226" y="-6" text-anchor="middle">PRE/POST</text>
+        <circle cx="272" cy="0" r="6" style="fill:var(--panel);stroke:var(--sig)" stroke-width="1.6"/><text x="272" y="-8" text-anchor="middle">OUT</text>
+        <circle cx="306" cy="0" r="6" style="fill:var(--panel);stroke:var(--sig)" stroke-width="1.6"/><text x="306" y="-8" text-anchor="middle">IN</text>
+      </g>
+
+      <!-- power -->
+      <rect x="4" y="7" width="30" height="13" rx="1.5" style="fill:var(--panel);stroke:var(--pwr)" stroke-width="1.2"/>
+      <text x="19" y="15.5" font-size="4.4" text-anchor="middle">12V 保護</text>
+      <rect x="4" y="23" width="30" height="17" rx="1.5" style="fill:var(--panel);stroke:var(--pwr)" stroke-width="1.2"/>
+      <text x="19" y="31" font-size="4.2" text-anchor="middle">降圧① 5V</text><text x="19" y="37" font-size="3.6" text-anchor="middle" class="mono">Pi 用</text>
+      <rect x="4" y="44" width="30" height="17" rx="1.5" style="fill:var(--panel);stroke:var(--pwr)" stroke-width="1.2"/>
+      <text x="19" y="52" font-size="4.2" text-anchor="middle">降圧② 5V</text><text x="19" y="58" font-size="3.4" text-anchor="middle" class="mono">UR12/LED/Pico</text>
+      <circle cx="8" cy="65" r="2.5" style="fill:var(--pwr)"/>
+
+      <!-- Pi + screen -->
+      <rect x="42" y="32" width="85" height="56" rx="3" style="fill:var(--panel);stroke:var(--dig)" stroke-width="1.6"/>
+      <text x="84" y="54" font-size="7" text-anchor="middle" font-weight="700">Pi 5</text>
+      <text x="84" y="62" class="mono" font-size="3.8" text-anchor="middle">85×56・高さ約25（クーラー込み）</text>
+      <rect x="49" y="29" width="9" height="4" style="fill:var(--pwr)"/>
+      <text x="54" y="27" font-size="3.4" text-anchor="middle" style="fill:var(--pwr)">USB-C（電源）</text>
+      <rect x="126" y="57" width="4" height="8" style="fill:var(--usb)"/><rect x="126" y="75" width="4" height="8" style="fill:var(--usb)"/>
+      <text x="124" y="72" font-size="3.4" text-anchor="end" style="fill:var(--usb)">USB-A ×4</text>
+      <rect x="45" y="85" width="51" height="3" style="fill:var(--dig)"/>
+      <text x="70" y="84" font-size="3.4" text-anchor="middle" style="fill:var(--dig)">GPIO 40ピン（画面へ）</text>
+      <rect x="36" y="2" width="98" height="64" rx="2" style="fill:none;stroke:var(--top)" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="85" y="58" font-size="4" text-anchor="middle" style="fill:var(--top)">天板の画面 3.5"（約98×64 推定）</text>
+      <!-- encoder + buttons on top, between Pi and UR12 -->
+      <circle cx="148" cy="12" r="4" style="fill:none;stroke:var(--top)" stroke-dasharray="2 1.5"/>
+      <circle cx="148" cy="38" r="7" style="fill:none;stroke:var(--top)" stroke-dasharray="2 1.5"/>
+      <circle cx="148" cy="60" r="4" style="fill:none;stroke:var(--top)" stroke-dasharray="2 1.5"/>
+      <text x="148" y="49" font-size="3.6" text-anchor="middle" style="fill:var(--top)">つまみ</text>
+
+      <!-- UR12 folded stack -->
+      <rect x="155" y="4" width="145" height="60" rx="2" style="fill:var(--panel);stroke:var(--ana)" stroke-width="1.6"/>
+      <rect x="158" y="7" width="139" height="54" rx="1.5" style="fill:none;stroke:var(--dig)" stroke-width="1" stroke-dasharray="3 2"/>
+      <text x="227" y="27" font-size="6.2" text-anchor="middle" font-weight="700">UR12（2枚を折り返して重ねる）</text>
+      <text x="227" y="36" class="mono" font-size="4" text-anchor="middle">145×60・上 DM ／ 間に GND の板 ／ 下 AM</text>
+      <text x="227" y="12" font-size="4" text-anchor="middle" style="fill:var(--muted)">折り目（平たいケーブル3本）は背面の壁側</text>
+      <text x="227" y="58" font-size="4" text-anchor="middle" style="fill:var(--ana)">端子の辺は手前向き → プラグはスイッチ列の下へ</text>
+
+      <!-- relay board -->
+      <rect x="302" y="10" width="25" height="50" rx="1.5" style="fill:var(--panel);stroke:var(--sig)" stroke-width="1.4"/>
+      <text x="314.5" y="35" font-size="4" text-anchor="middle" transform="rotate(90 314.5 35)">リレー基板（25×50 推定）</text>
+
+      <!-- switch row -->
+      <g>
+        <circle cx="35" cy="96" r="22" style="fill:none;stroke:var(--line)"/><circle cx="35" cy="96" r="6" style="fill:var(--panel);stroke:var(--fg)"/><text x="35" y="116" font-size="5" text-anchor="middle">TUNER</text>
+        <circle cx="100" cy="96" r="22" style="fill:none;stroke:var(--line)"/><circle cx="100" cy="96" r="6" style="fill:var(--panel);stroke:var(--fg)"/><text x="100" y="116" font-size="5" text-anchor="middle">1</text>
+        <circle cx="165" cy="96" r="22" style="fill:none;stroke:var(--line)"/><circle cx="165" cy="96" r="6" style="fill:var(--panel);stroke:var(--fg)"/><text x="165" y="116" font-size="5" text-anchor="middle">2</text>
+        <circle cx="230" cy="96" r="22" style="fill:none;stroke:var(--line)"/><circle cx="230" cy="96" r="6" style="fill:var(--panel);stroke:var(--fg)"/><text x="230" y="116" font-size="5" text-anchor="middle">3</text>
+        <circle cx="295" cy="96" r="22" style="fill:none;stroke:var(--line)"/><circle cx="295" cy="96" r="6" style="fill:var(--panel);stroke:var(--fg)"/><text x="295" y="116" font-size="5" text-anchor="middle">BYPASS</text>
+      </g>
+      <rect x="130" y="72" width="70" height="46" rx="1.5" style="fill:none;stroke:var(--dig)" stroke-width="1.2" stroke-dasharray="3 2"/>
+      <rect x="140" y="104" width="51" height="12" rx="1" style="fill:none;stroke:var(--dig)" stroke-width=".8"/>
+      <text x="165" y="80" font-size="4.2" text-anchor="middle" style="fill:var(--dig)">Pico 基板（床・70×50）</text>
+      <text x="165" y="112" font-size="3.6" text-anchor="middle" style="fill:var(--dig)">Pico（ソケットに差す）</text>
+    </svg>
+    <div class="legend">
+      <span><i class="sw" style="border-color:var(--sig)"></i>音の線（シールド線・短く）</span>
+      <span><i class="sw" style="border-color:var(--usb)"></i>USB</span>
+      <span><i class="sw" style="border-color:var(--pwr)"></i>電源</span>
+      <span><i class="box" style="border-color:var(--top);border-style:dashed"></i>天板に付く物</span>
+      <span><i class="box" style="border-color:var(--dig);background:var(--dig-bg)"></i>デジタル側</span>
+      <span><i class="box" style="border-color:var(--ana);background:var(--ana-bg)"></i>音の側</span>
+    </div>
+  </section>
+
+  <section class="fig" aria-label="4方向から見た図">
+    <h2>4方向から見た図</h2>
+    <p class="sub">下の立体の図の ①〜④ の目の位置から見たのが、その下の4枚。「中」と書いた点線は、箱が透けて見えるとしたら中にある物。</p>
+    <figure class="iso">
+      <svg viewBox="-60 -150 520 200" role="img" aria-label="ペダルを斜め上から見た立体図。①後ろ、②前、③左、④右から見る向きの矢印">
+        <!-- box: width x→right, depth goes up-right (0.45, -0.3 per mm), height up -->
+        <polygon points="0,-45 330,-45 384,-101 54,-101" style="fill:var(--panel);stroke:var(--fg)" stroke-width="1.4"/>
+        <polygon points="0,0 330,0 330,-45 0,-45" style="fill:var(--bg);stroke:var(--fg)" stroke-width="1.4"/>
+        <polygon points="330,0 384,-36 384,-101 330,-45" style="fill:var(--line);stroke:var(--fg)" stroke-width="1.4"/>
+        <!-- screen on the top, back-left -->
+        <polygon points="62,-82 160,-82 176,-95 78,-95" style="fill:var(--top);opacity:.35;stroke:var(--top)"/>
+        <text x="119" y="-86" font-size="7" text-anchor="middle">画面</text>
+        <!-- footswitches near the front edge of the top -->
+        <g style="fill:var(--fg)">
+          <ellipse cx="46" cy="-56" rx="6" ry="3"/><ellipse cx="111" cy="-56" rx="6" ry="3"/><ellipse cx="176" cy="-56" rx="6" ry="3"/><ellipse cx="241" cy="-56" rx="6" ry="3"/><ellipse cx="306" cy="-56" rx="6" ry="3"/>
+        </g>
+        <text x="176" y="-63" font-size="7" text-anchor="middle">フットスイッチ ×5</text>
+        <text x="165" y="-18" font-size="9" text-anchor="middle" style="fill:var(--muted)">前（足元・あなたが立つ側）</text>
+        <text x="357" y="-40" font-size="7" text-anchor="middle" style="fill:var(--muted)" transform="rotate(-56 357 -40)">右</text>
+        <text x="219" y="-106" font-size="8" text-anchor="middle" style="fill:var(--muted)">後ろ（ジャック類）</text>
+        <!-- eyes -->
+        <g font-size="11" font-weight="700">
+          <line x1="219" y1="-140" x2="219" y2="-112" style="stroke:var(--sig)" stroke-width="2"/><polygon points="214,-117 224,-117 219,-109" style="fill:var(--sig)"/><text x="230" y="-132" style="fill:var(--sig)">① 後ろから</text>
+          <line x1="165" y1="40" x2="165" y2="8" style="stroke:var(--sig)" stroke-width="2"/><polygon points="160,13 170,13 165,5" style="fill:var(--sig)"/><text x="175" y="36" style="fill:var(--sig)">② 前から</text>
+          <line x1="-48" y1="-40" x2="-8" y2="-40" style="stroke:var(--sig)" stroke-width="2"/><polygon points="-13,-45 -13,-35 -5,-40" style="fill:var(--sig)"/><text x="-52" y="-48" style="fill:var(--sig)">③ 左から</text>
+          <line x1="440" y1="-60" x2="396" y2="-60" style="stroke:var(--sig)" stroke-width="2"/><polygon points="401,-65 401,-55 393,-60" style="fill:var(--sig)"/><text x="400" y="-70" style="fill:var(--sig)">④ 右から</text>
+        </g>
+      </svg>
+    </figure>
+    <div class="views">
+      <figure>
+        <figcaption>① 後ろに立って、背面パネルを見たところ（高さ 65）</figcaption>
+        <svg viewBox="-8 -12 346 92" role="img" aria-label="後ろから見た背面パネル。左から IN、OUT、トグル2個、XLR、増設USB、DC">
+          <rect x="0" y="0" width="330" height="65" rx="2" style="fill:var(--panel);stroke:var(--fg)" stroke-width="1.4"/>
+          <rect x="30" y="30" width="145" height="33" style="fill:var(--ana-bg);stroke:var(--ana)" stroke-dasharray="3 2"/>
+          <text x="102" y="58" font-size="4.4" text-anchor="middle" style="fill:var(--ana)">（中）重ねた UR12</text>
+          <rect x="203" y="38" width="85" height="25" style="fill:var(--dig-bg);stroke:var(--dig)" stroke-dasharray="3 2"/>
+          <text x="245" y="58" font-size="4.4" text-anchor="middle" style="fill:var(--dig)">（中）Pi 5</text>
+          <circle cx="24" cy="17" r="7" style="fill:var(--bg);stroke:var(--sig)" stroke-width="1.8"/><text x="24" y="-3" font-size="4.6" text-anchor="middle">IN（ベースから）</text>
+          <circle cx="58" cy="17" r="7" style="fill:var(--bg);stroke:var(--sig)" stroke-width="1.8"/><text x="58" y="-3" font-size="4.6" text-anchor="middle">OUT（アンプへ）</text>
+          <rect x="100" y="12" width="7" height="10" rx="1" style="fill:var(--bg);stroke:var(--ana)"/><text x="104" y="30" font-size="4.2" text-anchor="middle">PRE/POST</text>
+          <rect x="118" y="12" width="7" height="10" rx="1" style="fill:var(--bg);stroke:var(--ana)"/><text x="122" y="-3" font-size="4.2" text-anchor="middle">LIFT</text>
+          <circle cx="144" cy="16" r="11" style="fill:var(--bg);stroke:var(--ana)" stroke-width="1.6"/><text x="150" y="-3" font-size="4.6" text-anchor="middle">XLR(DI)</text>
+          <rect x="283" y="14" width="14" height="8" rx="1" style="fill:var(--bg);stroke:var(--usb)" stroke-width="1.4"/><text x="290" y="-3" font-size="4.6" text-anchor="middle">増設USB</text>
+          <circle cx="316" cy="48" r="6" style="fill:var(--bg);stroke:var(--pwr)" stroke-width="1.6"/><text x="316" y="38" font-size="4.6" text-anchor="middle">DC</text>
+          <text class="mono" x="165" y="76" font-size="4.4" text-anchor="middle">後ろから見ているので、プレイヤーから見て右にある IN が左に来る</text>
+        </svg>
+      </figure>
+      <figure>
+        <figcaption>② 前（足元）に立って見たところ（高さ 45）</figcaption>
+        <svg viewBox="-8 -24 346 78" role="img" aria-label="正面。前面パネルには何も付けない。天板にフットスイッチ5個が並ぶ">
+          <rect x="0" y="0" width="330" height="45" style="fill:var(--panel);stroke:var(--fg)" stroke-width="1.4"/>
+          <g style="fill:var(--fg)">
+            <rect x="29" y="-8" width="12" height="8" rx="2"/><rect x="94" y="-8" width="12" height="8" rx="2"/>
+            <rect x="159" y="-8" width="12" height="8" rx="2"/><rect x="224" y="-8" width="12" height="8" rx="2"/>
+            <rect x="289" y="-8" width="12" height="8" rx="2"/>
+          </g>
+          <g font-size="4.6" text-anchor="middle"><text x="35" y="-12">TUNER</text><text x="100" y="-12">1</text><text x="165" y="-12">2</text><text x="230" y="-12">3</text><text x="295" y="-12">BYPASS</text></g>
+          <rect x="130" y="30" width="70" height="13" style="fill:var(--dig-bg);stroke:var(--dig)" stroke-dasharray="3 2"/>
+          <text x="165" y="39" font-size="4.4" text-anchor="middle" style="fill:var(--dig)">（中）Pico 基板</text>
+          <text x="165" y="19" font-size="5" text-anchor="middle" style="fill:var(--muted)">前面パネルには何も付けない（踏む側）</text>
+        </svg>
+      </figure>
+      <figure>
+        <figcaption>③ 左側に立って見たところ（中の Pi が透けて見えるとしたら）</figcaption>
+        <svg viewBox="-30 -14 190 96" role="img" aria-label="左側の断面。奥が高いくさび形。Pi 5 が奥の床、画面は斜めの天板の裏、手前の床に Pico 基板">
+          <polygon points="0,0 120,20 120,65 0,65" style="fill:none;stroke:var(--fg)" stroke-width="1.4"/>
+          <text class="mono" x="-3" y="34" font-size="5" text-anchor="end">奥 65</text>
+          <text class="mono" x="124" y="46" font-size="5">手前 45</text>
+          <rect x="6" y="39" width="56" height="25" style="fill:var(--dig-bg);stroke:var(--dig)"/>
+          <text x="34" y="54" font-size="4.6" text-anchor="middle">Pi 5＋クーラー</text>
+          <line x1="6" y1="2" x2="66" y2="12" style="stroke:var(--top)" stroke-width="3"/>
+          <text x="36" y="-4" font-size="4.4" text-anchor="middle" style="fill:var(--top)">画面（天板の裏）</text>
+          <rect x="95" y="16" width="10" height="27" style="fill:var(--panel);stroke:var(--fg)"/>
+          <rect x="72" y="56" width="46" height="7" style="fill:none;stroke:var(--dig)" stroke-dasharray="2 1.5"/>
+          <text x="95" y="53" font-size="4" text-anchor="middle" style="fill:var(--dig)">Pico 基板</text>
+          <text x="60" y="78" font-size="4.4" text-anchor="middle">← 奥（背面）　　手前 →</text>
+        </svg>
+      </figure>
+      <figure>
+        <figcaption>④ 右側に立って見たところ（中の UR12 が透けて見えるとしたら）</figcaption>
+        <svg viewBox="-30 -14 190 96" role="img" aria-label="右側の断面。UR12 を折り返して重ね、その上に背面ジャック">
+          <polygon points="120,0 0,20 0,65 120,65" style="fill:none;stroke:var(--fg)" stroke-width="1.4"/>
+          <text class="mono" x="124" y="34" font-size="5">奥 65</text>
+          <text class="mono" x="-3" y="46" font-size="5" text-anchor="end">手前 45</text>
+          <rect x="60" y="50" width="58" height="13" style="fill:var(--ana-bg);stroke:var(--ana)"/>
+          <text x="89" y="58.5" font-size="4" text-anchor="middle">AM（下）</text>
+          <rect x="60" y="47" width="58" height="2" style="fill:var(--fg)"/>
+          <text x="56" y="49.5" font-size="3.4" text-anchor="end" style="fill:var(--muted)">GND の板</text>
+          <rect x="60" y="32" width="58" height="14" style="fill:var(--dig-bg);stroke:var(--dig)"/>
+          <text x="89" y="41" font-size="4" text-anchor="middle">DM（上）</text>
+          <path d="M60,35 q-9,8 0,22" style="fill:none;stroke:var(--usb)" stroke-width="1.4"/>
+          <circle cx="122" cy="17" r="5" style="fill:var(--panel);stroke:var(--sig)" stroke-width="1.4"/>
+          <rect x="96" y="14" width="24" height="6" style="fill:none;stroke:var(--sig)" stroke-dasharray="2 1.2"/>
+          <text x="92" y="11" font-size="4" text-anchor="end" style="fill:var(--sig)">IN / OUT（UR12 の上）</text>
+          <rect x="15" y="16" width="10" height="27" style="fill:var(--panel);stroke:var(--fg)"/>
+          <text x="60" y="78" font-size="4.4" text-anchor="middle">← 手前　　奥（背面）→</text>
+        </svg>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <h2>部品ごとの入口と出口</h2>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>部品</th><th>入口（どこから来るか）</th><th>出口（どこへ行くか）</th><th>メモ</th></tr></thead>
+        <tbody>
+          <tr class="zone"><td colspan="4">電源</td></tr>
+          <tr><td>DC ジャック<br><span class="mono" style="font-weight:400">A-2237</span></td><td>12V アダプター FSP036（5.5/2.1mm・センター＋）<span class="tag t-pwr">12V</span></td><td>12V 保護へ</td><td>穴 12mm。差して確かめる</td></tr>
+          <tr><td>12V 保護</td><td>DC ジャック</td><td>降圧① と 降圧② へ <span class="tag t-pwr">12V</span></td><td>逆接続 SB340LS、ヒューズ MF-R300、サージ P4KE15A（手持ち）。ここが GND を集める1点</td></tr>
+          <tr><td>降圧① 5V 4A</td><td>12V</td><td>Pi 5 の USB-C（切った C-C ケーブル）<span class="tag t-pwr">5V</span></td><td>Pi の設定 PSU_MAX_CURRENT=5000</td></tr>
+          <tr><td>降圧② 5V 4A</td><td>12V</td><td>UR12 の 5V（micro-USB）、LED リング、Pico の補助電源、リレー <span class="tag t-pwr">5V</span></td><td>UR12 の POWER SOURCE スイッチを外部 5V 側に</td></tr>
+          <tr class="zone"><td colspan="4">デジタル</td></tr>
+          <tr><td>Pi 5</td><td>5V（降圧①）</td><td>USB → UR12 DM（音）<span class="tag t-usb">USB</span><br>USB → Pico（MIDI）<span class="tag t-usb">USB</span><br>USB → 背面の増設USB <span class="tag t-usb">USB</span><br>SPI → 画面 <span class="tag t-gp">GPIO</span></td><td>Wi-Fi でスマホから編集。micro HDMI は空き（将来キャプチャーで配信も可）</td></tr>
+          <tr><td>Pico 2<br><span style="font-weight:400">（Pico 基板に差す）</span></td><td>USB（Pi から MIDI と 5V）<br>スイッチ: 1=GP2・2=GP3・3=GP4・TUNER=GP5・BYPASS=GP6 <span class="tag t-gp">GP</span><br>つまみ A/B=GP10/11・押す=GP12、左=GP13・右=GP14 <span class="tag t-gp">GP</span></td><td>LED リングのデータ GP16 <span class="tag t-gp">GP</span><br>TUNER LED GP7・BYPASS LED GP8<br>リレー GP9 → 2SC1815 → コイル</td><td>v6 で動作確認済み（TUNER・BYPASS の 3PDT、10/13）</td></tr>
+          <tr><td>画面 3.5" ILI9488</td><td>SPI（CS・DC・RESET・MOSI・SCK）＋ 3.3V/5V・GND・バックライト</td><td>―</td><td class="todo">Pi か Pico のどちらにつなぐか未定</td></tr>
+          <tr><td>LED リング ×3</td><td>5V（降圧②）、データ ← Pico GP16</td><td>1 → 2 → 3 の順に数珠つなぎ（DOUT → DIN）</td><td>天板の裏から光らせる。明るさ 20〜30%</td></tr>
+          <tr><td>フットスイッチ ×5</td><td>GND</td><td>Pico GP2〜GP6</td><td>1/2/3 はモーメンタリ A-1091、TUNER/BYPASS は手持ちの 3PDT（真ん中の足 → GP、端の足 → GND）</td></tr>
+          <tr><td>つまみ・ボタン</td><td>GND</td><td>Pico GP10〜GP14</td><td>A-6331（押せる）、A-5050 ×2</td></tr>
+          <tr class="zone"><td colspan="4">音</td></tr>
+          <tr><td>IN ジャック</td><td>ベース <span class="tag t-sig">音</span></td><td>リレー①</td><td>背面、UR12 の上</td></tr>
+          <tr><td>リレー①（素通り）</td><td>IN ジャック ／ UR12 の LINE OUT</td><td>電気なし：IN → OUT 直結<br>電気あり：IN → UR12 HI-Z、LINE OUT → OUT</td><td>TQ2-5V（2回路）。右奥のリレー基板に載せる。Pi が止まっても音が出る</td></tr>
+          <tr><td>UR12 AM（アナログ）</td><td>HI-Z ← リレー① <span class="tag t-sig">音</span></td><td>平たいケーブルで DM へ</td><td>GAIN・OUTPUT は中で固定。DIRECT MONITOR OFF、+48V OFF</td></tr>
+          <tr><td>UR12 DM（デジタル）</td><td>USB ← Pi、5V ← 降圧②</td><td>LINE OUT L → リレー① → OUT<br>LINE OUT R → DI（POST）</td><td>左右で別の音（L=エフェクト・R=素の音）にできれば PC 録音でも使える<span class="todo">（未確認）</span></td></tr>
+          <tr><td>リレー②（DI PRE/POST）</td><td>LINE OUT R ／ IN（素の音）</td><td>XLR へ</td><td>PRE/POST トグル。PRE は後回しでもよい</td></tr>
+          <tr><td>OUT ジャック</td><td>リレー①</td><td>アンプ、または PC のライン入力（青）<span class="tag t-sig">音</span></td><td>背面、UR12 の上</td></tr>
+          <tr><td>XLR（DI）</td><td>リレー②</td><td>ミキサー・PA</td><td>GND LIFT トグルで GND を切れる</td></tr>
+          <tr><td>増設USB</td><td>Pi の USB</td><td>増設箱（Pico 2 ＋ スイッチ3個）</td><td>背面</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>部品の寸法と端子の向き</h2>
+    <p class="sub">「公式」はメーカーの図面・データシート、「販売店」は店の表記、「推定」は似た部品から。<span class="todo">UR12 だけは公開された寸法がなく、実物を測る必要がある。</span>図は部品ごとに縮尺が違う（数字は mm）。</p>
+    <div class="parts">
+      <figure class="part">
+        <figcaption>Pi 5 <span class="src">公式図面</span></figcaption>
+        <svg viewBox="-14 -16 124 92" role="img" aria-label="Pi 5 の上面図">
+          <rect x="0" y="0" width="85" height="56" rx="3" style="fill:var(--dig-bg);stroke:var(--dig)" stroke-width="1"/>
+          <g style="fill:none;stroke:var(--muted)" stroke-width=".6"><circle cx="3.5" cy="3.5" r="1.5"/><circle cx="61.5" cy="3.5" r="1.5"/><circle cx="3.5" cy="52.5" r="1.5"/><circle cx="61.5" cy="52.5" r="1.5"/></g>
+          <rect x="7" y="1" width="51" height="5" style="fill:var(--panel);stroke:var(--dig)" stroke-width=".6"/>
+          <text x="32.5" y="4.6" font-size="3" text-anchor="middle">GPIO 40ピン</text>
+          <rect x="70" y="2" width="18" height="14" style="fill:var(--panel);stroke:var(--usb)" stroke-width=".8"/>
+          <rect x="70" y="20" width="18" height="14" style="fill:var(--panel);stroke:var(--usb)" stroke-width=".8"/>
+          <text x="79" y="10.5" font-size="3" text-anchor="middle">USB</text><text x="79" y="28.5" font-size="3" text-anchor="middle">USB</text>
+          <rect x="66" y="38" width="22" height="16" style="fill:var(--panel);stroke:var(--muted)" stroke-width=".8"/>
+          <text x="77" y="47.5" font-size="3" text-anchor="middle">LAN</text>
+          <rect x="7.6" y="51" width="7.2" height="5.5" style="fill:var(--panel);stroke:var(--pwr)" stroke-width=".8"/>
+          <rect x="22.8" y="51" width="6" height="4.5" style="fill:var(--panel);stroke:var(--muted)" stroke-width=".6"/>
+          <rect x="36.2" y="51" width="6" height="4.5" style="fill:var(--panel);stroke:var(--muted)" stroke-width=".6"/>
+          <text x="11" y="63" font-size="3" text-anchor="middle" style="fill:var(--pwr)">USB-C</text>
+          <text x="32.5" y="63" font-size="3" text-anchor="middle">micro HDMI ×2</text>
+          <text class="mono" x="42.5" y="-6" font-size="3.6" text-anchor="middle">85</text>
+          <line x1="0" y1="-4" x2="85" y2="-4" style="stroke:var(--muted)" stroke-width=".4"/>
+          <text class="mono" x="-4" y="30" font-size="3.6" text-anchor="end">56</text>
+          <line x1="-2" y1="0" x2="-2" y2="56" style="stroke:var(--muted)" stroke-width=".4"/>
+          <text class="mono" x="11" y="69" font-size="3" text-anchor="middle">11.2</text><text class="mono" x="25.8" y="69" font-size="3" text-anchor="middle">25.8</text><text class="mono" x="39.2" y="69" font-size="3" text-anchor="middle">39.2</text>
+          <text class="mono" x="92" y="10" font-size="3">↕ USB は</text><text class="mono" x="92" y="14" font-size="3">3 はみ出す</text>
+          <text class="mono" x="32" y="74" font-size="3" text-anchor="middle">ネジ穴 58×49・高さ（クーラー込み）約25</text>
+        </svg>
+      </figure>
+      <figure class="part">
+        <figcaption>Pico 2 <span class="src">公式データシート</span></figcaption>
+        <svg viewBox="-12 -10 82 76" role="img" aria-label="Pico 2 の上面図">
+          <rect x="0" y="0" width="21" height="51" rx="1" style="fill:var(--dig-bg);stroke:var(--dig)" stroke-width="1"/>
+          <rect x="6.5" y="-1.3" width="8" height="5" style="fill:var(--panel);stroke:var(--usb)" stroke-width=".8"/>
+          <text x="10.5" y="-3.5" font-size="3" text-anchor="middle" style="fill:var(--usb)">micro-USB</text>
+          <g style="fill:var(--fg)">
+            <circle cx="1.6" cy="3" r=".55"/><circle cx="1.6" cy="5.54" r=".55"/><circle cx="1.6" cy="8.08" r=".55"/><circle cx="1.6" cy="10.62" r=".55"/><circle cx="1.6" cy="13.16" r=".55"/><circle cx="1.6" cy="15.7" r=".55"/><circle cx="1.6" cy="18.24" r=".55"/><circle cx="1.6" cy="20.78" r=".55"/><circle cx="1.6" cy="23.32" r=".55"/><circle cx="1.6" cy="25.86" r=".55"/><circle cx="1.6" cy="28.4" r=".55"/><circle cx="1.6" cy="30.94" r=".55"/><circle cx="1.6" cy="33.48" r=".55"/><circle cx="1.6" cy="36.02" r=".55"/><circle cx="1.6" cy="38.56" r=".55"/><circle cx="1.6" cy="41.1" r=".55"/><circle cx="1.6" cy="43.64" r=".55"/><circle cx="1.6" cy="46.18" r=".55"/><circle cx="1.6" cy="48.72" r=".55"/>
+            <circle cx="19.4" cy="3" r=".55"/><circle cx="19.4" cy="5.54" r=".55"/><circle cx="19.4" cy="8.08" r=".55"/><circle cx="19.4" cy="10.62" r=".55"/><circle cx="19.4" cy="13.16" r=".55"/><circle cx="19.4" cy="15.7" r=".55"/><circle cx="19.4" cy="18.24" r=".55"/><circle cx="19.4" cy="20.78" r=".55"/><circle cx="19.4" cy="23.32" r=".55"/><circle cx="19.4" cy="25.86" r=".55"/><circle cx="19.4" cy="28.4" r=".55"/><circle cx="19.4" cy="30.94" r=".55"/><circle cx="19.4" cy="33.48" r=".55"/><circle cx="19.4" cy="36.02" r=".55"/><circle cx="19.4" cy="38.56" r=".55"/><circle cx="19.4" cy="41.1" r=".55"/><circle cx="19.4" cy="43.64" r=".55"/><circle cx="19.4" cy="46.18" r=".55"/><circle cx="19.4" cy="48.72" r=".55"/>
+          </g>
+          <text x="-1" y="4" font-size="2.6" text-anchor="end">1 GP0</text><text x="-1" y="11.6" font-size="2.6" text-anchor="end">4 GP2</text>
+          <text x="-1" y="19.2" font-size="2.6" text-anchor="end">7 GP5</text><text x="-1" y="31.9" font-size="2.6" text-anchor="end">12 GP9</text>
+          <text x="-1" y="42.1" font-size="2.6" text-anchor="end">16 GP12</text><text x="-1" y="49.7" font-size="2.6" text-anchor="end">20 GP15</text>
+          <text x="22" y="4" font-size="2.6">40 VBUS</text><text x="22" y="6.6" font-size="2.6">39 VSYS</text><text x="22" y="9.1" font-size="2.6">38 GND</text>
+          <text x="22" y="49.6" font-size="2.6">21 GP16</text>
+          <text class="mono" x="10.5" y="57" font-size="3.4" text-anchor="middle">21</text>
+          <text class="mono" x="40" y="28" font-size="3.4">51</text>
+          <text class="mono" x="10.5" y="63" font-size="3" text-anchor="middle">足は 2.54 ピッチ、ネジ穴 2.1</text>
+        </svg>
+      </figure>
+      <figure class="part">
+        <figcaption>TQ2-5V リレー（上から、印を左）<span class="src">10/10 実物</span></figcaption>
+        <svg viewBox="-20 -14 84 56" role="img" aria-label="TQ2 リレーのピン配置">
+          <rect x="0" y="0" width="42" height="27" rx="2" style="fill:var(--panel);stroke:var(--sig)" stroke-width="1"/>
+          <rect x="1.5" y="10.5" width="3" height="6" style="fill:var(--sig)"/>
+          <g font-size="3.2" text-anchor="middle">
+            <text x="4" y="-2">10</text><text x="12.5" y="-2">9</text><text x="21" y="-2">8</text><text x="29.5" y="-2">7</text><text x="38" y="-2">6</text>
+            <text x="4" y="33">1</text><text x="12.5" y="33">2</text><text x="21" y="33">3</text><text x="29.5" y="33">4</text><text x="38" y="33">5</text>
+          </g>
+          <g font-size="2.7" text-anchor="middle" style="fill:var(--sig)">
+            <text x="4" y="-7">コイル−</text><text x="12.5" y="-7">B NC</text><text x="21" y="-7">B COM</text><text x="29.5" y="-7">B NO</text>
+            <text x="4" y="38">コイル＋</text><text x="12.5" y="38">A NC</text><text x="21" y="38">A COM</text><text x="29.5" y="38">A NO</text>
+          </g>
+          <text class="mono" x="21" y="15" font-size="3.4" text-anchor="middle">14×9×5</text>
+          <text x="-2" y="14" font-size="2.8" text-anchor="end">印</text>
+        </svg>
+      </figure>
+      <figure class="part">
+        <figcaption>降圧 5V 4A（×2）<span class="src">販売店</span></figcaption>
+        <svg viewBox="-8 -10 56 40" role="img" aria-label="降圧コンバーターの上面図">
+          <rect x="0" y="0" width="33" height="16" rx="1" style="fill:var(--panel);stroke:var(--pwr)" stroke-width="1"/>
+          <circle cx="2.5" cy="4" r="1" style="fill:var(--pwr)"/><circle cx="2.5" cy="12" r="1" style="fill:var(--fg)"/>
+          <circle cx="30.5" cy="4" r="1" style="fill:var(--pwr)"/><circle cx="30.5" cy="12" r="1" style="fill:var(--fg)"/>
+          <text x="5" y="5" font-size="2.8">IN＋</text><text x="5" y="13" font-size="2.8">GND</text>
+          <text x="28" y="5" font-size="2.8" text-anchor="end">5V</text><text x="28" y="13" font-size="2.8" text-anchor="end">GND</text>
+          <text class="mono" x="16.5" y="-3" font-size="3.4" text-anchor="middle">33</text>
+          <text class="mono" x="36" y="9" font-size="3.4">16</text>
+          <text class="mono" x="16.5" y="24" font-size="3" text-anchor="middle">高さ 5.7・入力 6〜36V</text>
+        </svg>
+      </figure>
+      <figure class="part">
+        <figcaption>画面 3.5" ILI9488 <span class="src">同型品・推定</span></figcaption>
+        <svg viewBox="-12 -10 124 78" role="img" aria-label="画面モジュールの上面図">
+          <rect x="0" y="0" width="98" height="56" rx="1.5" style="fill:var(--panel);stroke:var(--top)" stroke-width="1"/>
+          <rect x="14" y="3.5" width="73.4" height="49" style="fill:var(--top);opacity:.18"/>
+          <text x="50.7" y="30" font-size="4" text-anchor="middle">表示 73×49</text>
+          <g style="fill:var(--fg)"><circle cx="4" cy="10" r=".7"/><circle cx="4" cy="14" r=".7"/><circle cx="4" cy="18" r=".7"/><circle cx="4" cy="22" r=".7"/><circle cx="4" cy="26" r=".7"/><circle cx="4" cy="30" r=".7"/><circle cx="4" cy="34" r=".7"/><circle cx="4" cy="38" r=".7"/><circle cx="4" cy="42" r=".7"/></g>
+          <text x="-2" y="27" font-size="3" text-anchor="end">ピン</text>
+          <text class="mono" x="49" y="-3" font-size="3.4" text-anchor="middle">約98</text>
+          <text class="mono" x="101" y="30" font-size="3.4">約56</text>
+          <text class="mono" x="49" y="63" font-size="3" text-anchor="middle">Tayda 品は届いたら実測</text>
+        </svg>
+      </figure>
+      <figure class="part">
+        <figcaption>フットスイッチ＋LED リング（天板の裏から）<span class="src">同型品・販売店</span></figcaption>
+        <svg viewBox="-30 -30 60 64" role="img" aria-label="LED リングの内側にフットスイッチの本体">
+          <circle cx="0" cy="0" r="24" style="fill:var(--panel);stroke:var(--line)" stroke-width="1"/>
+          <circle cx="0" cy="0" r="15.5" style="fill:var(--bg);stroke:var(--line)" stroke-width=".8"/>
+          <rect x="-6.5" y="-12.75" width="13" height="25.5" rx="1" style="fill:var(--panel);stroke:var(--fg)" stroke-width=".8"/>
+          <circle cx="0" cy="0" r="6" style="fill:none;stroke:var(--muted)" stroke-dasharray="1 1" stroke-width=".6"/>
+          <text class="mono" x="0" y="29" font-size="3.2" text-anchor="middle">外径48・内径31・本体13×25.5</text>
+          <text class="mono" x="0" y="-26" font-size="3.2" text-anchor="middle">穴 M12・天板の下 約14</text>
+        </svg>
+      </figure>
+      <figure class="part">
+        <figcaption>背面の部品の穴 <span class="src">販売店・推定</span></figcaption>
+        <svg viewBox="-6 -12 112 46" role="img" aria-label="背面パネルの穴の大きさ">
+          <circle cx="12" cy="10" r="12" style="fill:var(--panel);stroke:var(--ana)" stroke-width="1"/>
+          <circle cx="2.5" cy="1" r="1.2" style="fill:var(--muted)"/><circle cx="21.5" cy="19" r="1.2" style="fill:var(--muted)"/>
+          <text x="12" y="30" font-size="3.2" text-anchor="middle">XLR 穴 約24</text>
+          <circle cx="38" cy="10" r="6" style="fill:var(--panel);stroke:var(--pwr)" stroke-width="1"/>
+          <text x="38" y="30" font-size="3.2" text-anchor="middle">DC 12</text>
+          <circle cx="56" cy="10" r="4.75" style="fill:var(--panel);stroke:var(--sig)" stroke-width="1"/>
+          <text x="56" y="30" font-size="3.2" text-anchor="middle">標準ジャック 約9.5</text>
+          <circle cx="76" cy="10" r="3.2" style="fill:var(--panel);stroke:var(--ana)" stroke-width="1"/>
+          <text x="76" y="30" font-size="3.2" text-anchor="middle">トグル 6.35</text>
+          <circle cx="95" cy="10" r="3.5" style="fill:var(--panel);stroke:var(--top)" stroke-width="1"/>
+          <text x="95" y="30" font-size="3.2" text-anchor="middle">つまみ 7</text>
+          <text class="mono" x="50" y="-5" font-size="3" text-anchor="middle">同じ縮尺（mm）</text>
+        </svg>
+      </figure>
+      <figure class="part wide">
+        <figcaption>UR12 の2枚（10/9 の写真から） <span class="src todo">端子の位置は実測待ち</span></figcaption>
+        <svg viewBox="-24 -14 214 80" role="img" aria-label="UR12 の DM と AM の並び。平たいケーブル3本で境目がつながる">
+          <rect x="0" y="0" width="60" height="145" transform="rotate(-90) translate(-60 0)" style="display:none"/>
+          <rect x="0" y="0" width="145" height="27" rx="1" style="fill:var(--dig-bg);stroke:var(--dig)" stroke-width="1"/>
+          <rect x="0" y="31" width="145" height="23" rx="1" style="fill:var(--ana-bg);stroke:var(--ana)" stroke-width="1"/>
+          <text x="72.5" y="15" font-size="4.4" text-anchor="middle" font-weight="700">DM（デジタル）約145×60</text>
+          <text x="72.5" y="44" font-size="4.4" text-anchor="middle" font-weight="700">AM（アナログ）約145×50</text>
+          <g style="fill:var(--usb)"><rect x="20" y="26" width="10" height="6"/><rect x="70" y="26" width="10" height="6"/><rect x="115" y="26" width="10" height="6"/></g>
+          <text x="150" y="30" font-size="3.4" style="fill:var(--usb)">← 平たいケーブル3本（折り目）</text>
+          <g font-size="3.2" style="fill:var(--muted)">
+            <text x="72.5" y="-4" text-anchor="middle">外側の辺：USB・5V（micro-USB）・POWER SOURCE・LINE OUT（RCA）・+48V（並びは ?）</text>
+            <text x="72.5" y="62" text-anchor="middle">外側の辺：MIC（コンボ）・HI-Z・ヘッドホン・GAIN・OUTPUT・DIRECT MONITOR（並びは ?）</text>
+          </g>
+          <text class="mono" x="-3" y="15" font-size="3.4" text-anchor="end">60</text>
+          <text class="mono" x="-3" y="44" font-size="3.4" text-anchor="end">50</text>
+          <text class="mono" x="72.5" y="70" font-size="3.4" text-anchor="middle">← 約145 →（図は縦を半分に縮めている）</text>
+        </svg>
+      </figure>
+    </div>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>部品</th><th>大きさ（mm）</th><th>端子・取り付け</th><th>必要なすき間</th><th>出どころ</th></tr></thead>
+        <tbody>
+          <tr><td>Pi 5</td><td>85×56、クーラー込み高さ約25</td><td>短い辺：USB-A ×4（2段）と LAN、3mm はみ出す ／ 長い辺：USB-C（左端から11.2）、micro HDMI（25.8・39.2）／ 反対の長い辺：GPIO 40ピン ／ ネジ穴 58×49</td><td>USB-A 側：まっすぐのプラグなら約40、<b>L字なら約18</b> ／ USB-C 側：約30（L字なら15）</td><td>公式図面</td></tr>
+          <tr><td>Pico 2</td><td>51×21×1</td><td>短い辺に micro-USB（はみ出す）、長い辺に 2.54mm ピッチの足 ×40、ネジ穴 2.1mm ×4</td><td>USB 側に約25（L字なら12）</td><td>公式データシート</td></tr>
+          <tr><td>降圧 5V 4A ×2</td><td>33×16×5.7</td><td>入力・出力ははんだ付けの穴（端子台なし）</td><td>3A 以上で放熱が要る</td><td>販売店</td></tr>
+          <tr><td>TQ2-5V リレー ×2</td><td>14×9×5</td><td>DIP 10ピン（印を左にして上の列 10〜6、下の列 1〜5）</td><td>―</td><td>販売店・10/10 実物</td></tr>
+          <tr><td>画面 3.5" ILI9488</td><td>約98×56、厚み約4（ピン込み約17）</td><td>短い辺にピン（SPI 8〜14本）。表示部 73×49</td><td>ピン側に配線 15</td><td>販売店（同型品）。<span class="todo">Tayda 品は届いたら実測</span></td></tr>
+          <tr><td>フットスイッチ A-1091</td><td>本体 13×25.5、天板の下に約14</td><td>ネジ M12×1.0（穴 12）</td><td>はんだ付けの端子の下に 5</td><td>同型品（PBS24B4）</td></tr>
+          <tr><td>LED リング A-7979</td><td>外径48、内径31、16個</td><td>スイッチの本体（13×25.5）の周りに入る</td><td>―</td><td>販売店</td></tr>
+          <tr><td>つまみ A-6331</td><td>本体 11 角、ブッシュ Ø7、軸 15</td><td>押しスイッチ付き</td><td>天板の下に約12</td><td>同系列（RE111F）</td></tr>
+          <tr><td>XLR オス A-613</td><td>パネル穴 約24、ネジ2本</td><td>はんだ付けの端子 3本</td><td>パネルの裏に約25</td><td class="todo">推定（標準の D 型）</td></tr>
+          <tr><td>トグル A-4567 ×2</td><td>穴 6.35、本体 約13×8×10</td><td>端子 3本</td><td>裏に約15</td><td class="todo">推定</td></tr>
+          <tr><td>DC ジャック A-2237</td><td>穴 12、高さ 14</td><td>端子 3本（中心・外・スイッチ）</td><td>プラグは外から</td><td>販売店</td></tr>
+          <tr><td>標準ジャック（手持ち）×2</td><td class="todo">実測</td><td>モノラル</td><td>裏に約25</td><td class="todo">手持ちを測る</td></tr>
+          <tr><td>UR12（2枚）</td><td>DM 約145×60、AM 約145×50（10/9 の写真）、外箱 約159×106×44</td><td class="todo">端子の位置・向き・高さが不明。HI-Z とヘッドホンは AM の外側の辺、USB・5V・LINE OUT は DM の外側の辺</td><td>HI-Z に中から挿すなら約35〜40（L字プラグなら約20）</td><td class="todo">実物を測る</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sub" style="margin-top:12px"><b>10/13 追記（KO の指摘）：</b>UR12 の端子は全部中でつなぐだけで、外に出す物はない。そこで<b>折り目（平たいケーブル）側を背面の壁にくっつけ、端子の辺を手前（フットスイッチ列の下の空間）に向ける</b>。プラグは手前の空いた床の上に伸びるので、<b>まっすぐのプラグ（手持ちのケーブル）のまま、奥行き 120 に収まる</b>見込み（UR12 60＋プラグ約 35）。L字プラグ・延長は不要。ヘッドホンは使わない（これ以上お金をかけない、10/13）。<span class="todo">確かめる：上の段（DM）の端子の高さが、スイッチ本体の下（床から約 37）より低いか。</span></p>
+    <p class="sub" style="margin-top:8px">分かったこと：① USB のプラグは長いので、Pi と UR12 の間は <b>L字の USB ケーブル</b>にする（図は L字の前提）。② フットスイッチ列の下の床は、天板からスイッチの本体（約14）とリング基板を引いても<b>高さ 30mm 以上空く</b>ので、Pi（25）はそこへはみ出してよい。③ UR12 の HI-Z に中から挿すプラグの長さで、UR12 を壁からどれだけ離すかが決まる → <b>UR12 の実測が最優先</b>。</p>
+  </section>
+
+  <section>
+    <h2>配線表（1本ずつ）</h2>
+    <p class="sub">記号 P＝電源、A＝音、U＝USB、C＝Pico の制御線、S＝画面、G＝GND。ピン番号は Pico が「GP＝物理ピン」、TQ2 は上から見て印を左にしたときの番号（10/10 の試作で確認済み）。<span class="todo">赤字</span>は案で、組むときに確かめる。</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>番号</th><th>から</th><th>へ</th><th>線・つなぎ方</th><th>メモ</th></tr></thead>
+        <tbody>
+          <tr class="zone"><td colspan="5">P 電源</td></tr>
+          <tr><td>P1</td><td>DC ジャック 中心（＋）</td><td>ポリスイッチ MF-R300</td><td>AWG20 赤</td><td>3A を超えたら切れて、冷えると戻る</td></tr>
+          <tr><td>P2</td><td>MF-R300</td><td>SB340LS アノード → カソードが 12V の線</td><td>AWG20 赤</td><td>逆に挿しても壊れない</td></tr>
+          <tr><td>P3</td><td>12V の線</td><td>P4KE15A（帯＝カソードを 12V 側）→ GND</td><td>足を直接</td><td>サージを逃がす</td></tr>
+          <tr><td>P4</td><td>12V の線</td><td>降圧① IN＋ ／ 降圧② IN＋</td><td>AWG22 赤 ×2</td><td>全体で約 2A（12V）の見込み</td></tr>
+          <tr><td>P5</td><td>降圧① OUT＋/−</td><td>ラズパイの GPIO 5V（2番・4番）／ GND（6番）</td><td>AWG20、15cm 以内</td><td>10/14 変更：USB-C は PC 用に空ける。ラズパイの設定 PSU_MAX_CURRENT=5000</td></tr>
+          <tr><td>P6</td><td>降圧② OUT＋</td><td>UR12 DM の 5V（切った A-microB ケーブル）</td><td>AWG22</td><td>UR12 の POWER SOURCE を外部 5V 側に</td></tr>
+          <tr><td>P7</td><td>降圧② OUT＋</td><td>Pico 基板の 5V 端子</td><td>AWG22、XH 2ピン</td><td>ここから LED リング・リレー・Pico 補助電源に分ける</td></tr>
+          <tr><td>P8</td><td>Pico 基板 5V</td><td>ショットキー（1N5819）→ Pico VSYS（39番）</td><td>基板上</td><td>Pi が再起動しても Pico が落ちない。<span class="todo">1N5819 は買い足し</span></td></tr>
+          <tr><td>P9</td><td>Pico 基板 5V</td><td>LED リング① VCC（②③へは基板から別に分ける）</td><td>AWG22、XH 3ピン（5V・GND・データ）</td><td>リング①の根元に 1000µF/10V。48個を 20〜30% で約 0.6A</td></tr>
+          <tr><td>P10</td><td>Pico 基板 5V</td><td>リレー基板 コイル＋（TQ2 の1番 ×2）</td><td>AWG26、XH 3ピン（5V・GND・コイル−）</td><td>試作は Pico VBUS から → 本番は降圧②から</td></tr>
+          <tr><td>P11</td><td>Pi 5 FAN 端子</td><td>公式アクティブクーラー</td><td>付属のケーブル</td><td></td></tr>
+          <tr class="zone"><td colspan="5">G GND（1点に集める）</td></tr>
+          <tr><td>G1</td><td>DC ジャック スリーブ（−）</td><td>GND の1点（12V 保護の基板上）</td><td>AWG20 黒</td><td>ここが全体の基準</td></tr>
+          <tr><td>G2</td><td>GND の1点</td><td>降圧①−、降圧②−、Pico 基板 GND、箱（銅テープ）</td><td>AWG22 黒、部品ごとに別の線</td><td>途中でつながず、1点から放射状に</td></tr>
+          <tr><td>G3</td><td>UR12</td><td>（USB と 5V の線の GND で自然につながる）</td><td>追加の線は引かない</td><td>2本目を引くとループになる</td></tr>
+          <tr><td>G4</td><td>ジャックの金属部分</td><td>箱</td><td>ジャックのナットで</td><td class="todo">箱が金属なら、IN/OUT のスリーブ＝箱＝G2 の1点。ハムが出たら IN だけ絶縁ワッシャー</td></tr>
+          <tr class="zone"><td colspan="5">A 音（すべてシールド線、網線は片側だけ GND）</td></tr>
+          <tr><td>A1</td><td>IN ジャック チップ</td><td>リレー① 3番（A の COM）</td><td>シールド線 5cm</td><td>網線は IN ジャック側で GND</td></tr>
+          <tr><td>A2</td><td>リレー① 2番（A の NC）</td><td>リレー① 9番（B の NC）</td><td>基板上の短い線</td><td>電気なし＝素通りの道</td></tr>
+          <tr><td>A3</td><td>リレー① 4番（A の NO）</td><td>UR12 AM の HI-Z 入力</td><td>シールド線＋モノラルプラグ</td><td>UR12 にははんだ付けしない（挿すだけ）</td></tr>
+          <tr><td>A4</td><td>UR12 DM LINE OUT L（RCA）</td><td>リレー① 7番（B の NO）</td><td>シールド線＋RCA プラグ（手持ちの RCA ケーブルを切る）</td><td>エフェクトの音</td></tr>
+          <tr><td>A5</td><td>リレー① 8番（B の COM）</td><td>OUT ジャック チップ</td><td>シールド線 5cm</td><td>アンプ、または PC のライン入力へ</td></tr>
+          <tr><td>A6</td><td>UR12 DM LINE OUT R（RCA）</td><td>DI 回路 → XLR 2番</td><td>シールド線＋RCA プラグ</td><td class="todo">案：10kΩ で 2番へ、2番→1kΩ→GND（約 −20dB でマイク入力に合わせる）、3番→1kΩ→GND</td></tr>
+          <tr><td>A7</td><td>XLR 1番</td><td>GND LIFT トグル → GND</td><td>AWG24</td><td>トグル OFF で 1番を切る</td></tr>
+          <tr><td>A8</td><td>PRE/POST トグル</td><td>（PRE のバッファを作るまで配線しない）</td><td>―</td><td>穴だけ開けておく。リレー② も保留</td></tr>
+          <tr><td>A9</td><td>UR12 AM ヘッドホン出力</td><td>使わない</td><td>―</td><td>これ以上お金をかけない（10/13）。練習はアンプか、OUT → PC</td></tr>
+          <tr><td>―</td><td>UR12 AM の MIC 入力・+48V</td><td>使わない</td><td>―</td><td>+48V は OFF で固定</td></tr>
+          <tr class="zone"><td colspan="5">U USB</td></tr>
+          <tr><td>U1</td><td>Pi 5 USB 2.0（黒）</td><td>UR12 DM の USB</td><td>短い USB ケーブル 15〜30cm</td><td>USB 3.0（青）は Wi-Fi に電波ノイズを出すことがあるので避ける</td></tr>
+          <tr><td>U2</td><td>Pi 5 USB 2.0（黒）</td><td>Pico の micro-USB</td><td>短い A-microB（手持ち）</td><td>MIDI と 5V</td></tr>
+          <tr><td>U3</td><td>Pi 5 USB 3.0（青）</td><td>背面の増設USB</td><td>パネル取り付けの USB 延長ケーブル</td><td class="todo">増設箱を作るときまで後回し</td></tr>
+          <tr><td>U4</td><td>ラズパイの USB-C</td><td>背面の穴から外へ → PC の USB-A</td><td>USB-C↔A ケーブル（中で抜け止め）。<b>5V の赤い線は切る</b></td><td>10/14 KO：録音・配信のとき PC につなぐ（ラズパイを USB オーディオ機器にする設定は完成後に試す）。電源は別（P5）</td></tr>
+          <tr class="zone"><td colspan="5">C Pico の制御線（Pico 基板の XH コネクターから）</td></tr>
+          <tr><td>C1</td><td>フットスイッチ 1 / 2 / 3</td><td>GP2（4番）/ GP3（5番）/ GP4（6番）、もう片方は GND</td><td>AWG26 2芯 ×3</td><td>モーメンタリ A-1091</td></tr>
+          <tr><td>C2</td><td>TUNER の 3PDT 真ん中の足 ／ 端の足</td><td>GP5（7番）／ GND</td><td>AWG26 2芯</td><td>10/13 動作確認済み</td></tr>
+          <tr><td>C3</td><td>BYPASS の 3PDT 真ん中の足 ／ 端の足</td><td>GP6（9番）／ GND</td><td>AWG26 2芯</td><td>10/13 動作確認済み</td></tr>
+          <tr><td>C4</td><td>GP7（10番）／ GP8（11番）</td><td>抵抗 → TUNER の赤 LED ／ BYPASS の白 LED → GND</td><td>AWG26</td><td>抵抗は試作と同じ値</td></tr>
+          <tr><td>C5</td><td>GP9（12番）</td><td>1kΩ → 2SC1815 ベース、コレクタ → リレーのコイル−（10番）、エミッタ → GND</td><td>トランジスタは Pico 基板、コイル−の線は P10 と同じコネクター</td><td>1N4148 を各コイルに逆向き（帯を 1番）</td></tr>
+          <tr><td>C6</td><td>GP16（21番）</td><td>330Ω → LED リング① DIN、① DOUT → ② DIN、② DOUT → ③ DIN</td><td>P9 と同じ XH 3ピン</td><td>3.3V の信号で光らないときだけ 74AHCT125</td></tr>
+          <tr><td>C7</td><td>つまみ A / B / 共通</td><td>GP10（14番）/ GP11（15番）/ GND</td><td>AWG26 3芯</td><td>A-6331</td></tr>
+          <tr><td>C8</td><td>つまみの押しボタン、左ボタン、右ボタン</td><td>GP12（16番）、GP13（17番）、GP14（19番）、もう片方は GND</td><td>AWG26</td><td>A-6331 の押し、A-5050 ×2</td></tr>
+          <tr class="zone"><td colspan="5">S 画面（<span class="todo">案：Pi の SPI につなぐ</span>）</td></tr>
+          <tr><td>S1</td><td>画面 VCC / GND</td><td>Pi 1番（3.3V）または 2番（5V）／ 6番（GND）</td><td>AWG26、XH 8〜9ピン</td><td class="todo">モジュールの表示で 3.3V か 5V か確かめる</td></tr>
+          <tr><td>S2</td><td>画面 SDI(MOSI) / SCK / CS</td><td>Pi 19番（GPIO10）/ 23番（GPIO11）/ 24番（GPIO8＝CE0）</td><td>同上、15cm 以内</td><td>SPI は長いと乱れる</td></tr>
+          <tr><td>S3</td><td>画面 DC / RESET / LED（バックライト）</td><td>Pi 22番（GPIO25）/ 18番（GPIO24）/ 12番（GPIO18）</td><td>同上</td><td>画面を描くのは Pi なので、Pi に直接つなぐのが一番簡単</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>箱の中で固定する UR12 のつまみ・ボタン</h2>
+    <ul>
+      <li><b>GAIN（HI-Z）</b>：一番強く弾いても割れない位置で固定</li>
+      <li><b>OUTPUT</b>：LINE OUT とヘッドホンの音量が同時に決まる。BYPASS の ON/OFF で音量が変わらない位置で固定し、ふだんの音量は PiPedal の出力（画面のつまみ）で変える</li>
+      <li><b>DIRECT MONITOR</b>：OFF（素の音が混ざらないように）。<b>+48V</b>：OFF</li>
+    </ul>
+  </section>
+
+  <div class="cols">
+    <section>
+      <h2>配線のルール</h2>
+      <ol>
+        <li>音の線は右側だけで完結させる。シールド線を使い、網線は片側だけ GND へ</li>
+        <li>USB は 15〜30cm の短いもの。音の線と並べず、交差するなら直角に</li>
+        <li>降圧コンバーターは音の側から一番遠い左奥</li>
+        <li>GND は 12V 保護の1点に、部品ごとに別の線で集める</li>
+        <li>UR12 の2枚は裏面どうしを合わせ、間に絶縁シート＋GND につないだ薄い金属板</li>
+        <li>銅テープは箱の内側全体、その1点に1本だけつなぐ。Pi の上に通気口</li>
+      </ol>
+    </section>
+    <section>
+      <h2>決めること・測ること</h2>
+      <ul>
+        <li class="todo">UR12 の実測：端子が並ぶ2辺を定規を当てて真横から撮影、一番背の高い部品（コンボジャック・つまみ）の高さ</li>
+        <li>UR12 の平たいケーブル3本が、U 字に折り返せる長さか（電源を抜いて、ゆっくり）</li>
+        <li>L字の USB ケーブル（A-C は Pi の電源用ではなく、A-B／A-microB 系）を買い足す</li>
+        <li>背面ジャックの胴体が、重ねた UR12（高さ約35mm）の上に収まるか</li>
+        <li>画面は Pi の SPI につなぐ案でよいか（S1〜S3）</li>
+        <li>UR12 のヘッドホン出力を背面に出すか（A9）</li>
+        <li>買い足し（秋月など）：ユニバーサル基板 70×50 ×2、ピンソケット 20P ×2、XH コネクター、1N5819、330Ω、1000µF/10V、DI 用の抵抗、パネル取り付けの USB 延長ケーブル。ブレッドボードは中に入れない</li>
+        <li>画面・降圧コンバーター・リレー基板の実寸（届いたら）</li>
+      </ul>
+    </section>
+  </div>
+</div>
