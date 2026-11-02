@@ -1,0 +1,28 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # すべての Python が文法エラーなく読めること(Pico の CircuitPython も文法だけは同じ)
+      - name: Python syntax
+        run: python -m py_compile app/*.py pi/*.py pico/*.py tools/*.py
+      # 家の IP・Tailscale の名前・鍵ファイルが紛れ込んでいないこと
+      - name: No private values
+        run: |
+          if grep -rnE '192\.168\.[0-9]+\.[0-9]+|tail[0-9a-f]{6,}\.ts\.net|DESKTOP-[A-Z0-9]{5,}' --exclude-dir=.git --exclude-dir=.github .; then
+            echo "private value found"; exit 1
+          fi
+          for f in app/t3k_config.json app/t3k_token.json; do
+            if [ -e "$f" ]; then echo "$f must not be committed"; exit 1; fi
+          done
+      - name: Shell scripts
+        run: sh -n pi/pedal-persist && sh -n pi/pedal-lock
